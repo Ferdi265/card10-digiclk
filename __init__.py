@@ -115,12 +115,56 @@ def renderColon(d, blank):
         drawGridVSeg(d, 11, 4, 7, 2, (255, 255, 255))
 
 def renderText(d, text, blankidx = None):
-    bs = bytearray(text.encode())
+    bs = bytearray(text)
 
     if blankidx != None:
         bs[blankidx:blankidx+1] = b'_'
 
     d.print(MODES[MODE] + ' ' + bs.decode(), fg = (255, 255, 255), bg = None, posx = 0, posy = 7 * 8)
+
+BUTTON_SEL = 1
+BUTTON_UP = 2
+BUTTON_DOWN = 4
+BUTTON_SEL_LONG = 8
+BUTTON_UP_LONG = 16
+BUTTON_DOWN_LONG = 32
+pressed_prev = 0
+button_sel_time = 0
+button_up_time = 0
+button_down_time = 0
+def checkButtons():
+    global pressed_prev, button_sel_time, button_up_time, button_down_time
+
+    t = utime.time()
+    pressed = buttons.read(buttons.BOTTOM_LEFT | buttons.TOP_RIGHT | buttons.BOTTOM_RIGHT)
+    buttons = 0
+
+    if pressed & buttons.BOTTOM_LEFT and not pressed_prev & buttons.BOTTOM_LEFT:
+        button_sel_time = t
+    elif not pressed & buttons.BOTTOM_LEFT and pressed_prev & buttons.BOTTOM_LEFT:
+        if button_sel_time < t:
+            buttons |= BUTTON_SEL_LONG
+        else:
+            buttons |= BUTTON_SEL
+
+    if pressed & buttons.TOP_RIGHT and not pressed_prev & buttons.TOP_RIGHT:
+        button_sel_time = t
+    elif not pressed & buttons.TOP_RIGHT and pressed_prev & buttons.TOP_RIGHT:
+        if button_sel_time < t:
+            buttons |= BUTTON_UP_LONG
+        else:
+            buttons |= BUTTON_UP
+
+    if pressed & buttons.BOTTOM_RIGHT and not pressed_prev & buttons.BOTTOM_RIGHT:
+        button_sel_time = t
+    elif not pressed & buttons.BOTTOM_RIGHT and pressed_prev & buttons.BOTTOM_RIGHT:
+        if button_sel_time < t:
+            buttons |= BUTTON_DOWN_LONG
+        else:
+            buttons |= BUTTON_DOWN
+
+    pressed_prev = pressed
+    return buttons
 
 def render():
     with display.open() as d:
@@ -141,6 +185,19 @@ def render():
 
 try:
     while True:
+        bs = checkButtons()
+        if bs & BUTTON_SEL:
+            print("SEL")
+        if bs & BUTTON_SEL_LONG:
+            print("SEL (long)")
+        if bs & BUTTON_UP:
+            print("UP")
+        if bs & BUTTON_UP_LONG:
+            print("UP (long)")
+        if bs & BUTTON_DOWN:
+            print("DOWN")
+        if bs & BUTTON_DOWN_LONG:
+            print("DOWN (long)")
         render()
 except KeyboardInterrupt:
     pass
