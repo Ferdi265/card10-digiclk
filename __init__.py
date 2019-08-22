@@ -245,14 +245,12 @@ def render(d):
     d.clear()
     #drawGrid(d, 1, 0, 22, 7, 7, (255, 0, 0))
 
-    if MODE != CHANGE_HOURS or secs % 2 == 0:
-        renderNum(d, hours, 1)
+    renderNum(d, hours, 1)
 
     if secs % 2 == 0:
         renderColon(d)
 
-    if MODE != CHANGE_MINUTES or secs % 2 == 0:
-        renderNum(d, mins, 13)
+    renderNum(d, mins, 13)
 
     renderText(d, NAME, None)
 
