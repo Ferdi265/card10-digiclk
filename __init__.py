@@ -99,7 +99,7 @@ MODES = {
     DISPLAY: '---',
     CHANGE_HOURS: 'HRS',
     CHANGE_MINUTES: 'MNS',
-    CHANGE_MINUTES: 'SEC',
+    CHANGE_SECONDS: 'SEC',
     CHANGE_NAME: 'NAM'
 }
 NAME = bytearray(b'   yrlf')
@@ -120,12 +120,12 @@ def renderText(d, text, blankidx = None):
 
     d.print(MODES[MODE] + ' ' + bs.decode(), fg = (255, 255, 255), bg = None, posx = 0, posy = 7 * 8)
 
-BUTTON_SEL = 1
-BUTTON_UP = 2
-BUTTON_DOWN = 4
-BUTTON_SEL_LONG = 8
-BUTTON_UP_LONG = 16
-BUTTON_DOWN_LONG = 32
+BUTTON_SEL = 1 << 0
+BUTTON_UP = 1 << 1
+BUTTON_DOWN = 1 << 2
+BUTTON_SEL_LONG = 1 << 3
+BUTTON_UP_LONG = 1 << 4
+BUTTON_DOWN_LONG = 1 << 5
 pressed_prev = 0
 button_sel_time = 0
 button_up_time = 0
@@ -184,6 +184,7 @@ def ctrl_display(bs):
         MODE = CHANGE_HOURS
 
 def ctrl_chg_hrs(bs):
+    global MODE
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
     if bs & BUTTON_SEL:
@@ -194,6 +195,7 @@ def ctrl_chg_hrs(bs):
         utime.set_time(utime.time() - HOUR + WORKAROUND_OFFSET)
 
 def ctrl_chg_mns(bs):
+    global MODE
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
     if bs & BUTTON_SEL:
@@ -204,7 +206,7 @@ def ctrl_chg_mns(bs):
         utime.set_time(utime.time() - MINUTE + WORKAROUND_OFFSET)
 
 def ctrl_chg_sec(bs):
-    global name_idx
+    global MODE, name_idx
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
     if bs & BUTTON_SEL:
@@ -217,7 +219,7 @@ def ctrl_chg_sec(bs):
 
 name_idx = 0
 def ctrl_chg_nam(bs):
-    global name_idx
+    global MODE, name_idx
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
     if bs & BUTTON_SEL:
