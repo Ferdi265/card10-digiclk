@@ -120,6 +120,9 @@ def renderText(d, text, blankidx = None):
 
     d.print(MODES[MODE] + ' ' + bs.decode(), fg = (255, 255, 255), bg = None, posx = 0, posy = 7 * 8)
 
+def renderBar(d, num):
+    d.rect(20, 78, 20 + num * 2, 80, col = (255, 255, 255))
+
 BUTTON_SEL = 1 << 0
 BUTTON_UP = 1 << 1
 BUTTON_DOWN = 1 << 2
@@ -253,6 +256,8 @@ def render(d):
     renderNum(d, mins, 13)
 
     renderText(d, NAME, None)
+
+    renderBar(d, secs)
 
     d.update()
 
