@@ -164,24 +164,19 @@ def checkButtons():
     pressed_prev = pressed
     return cur_buttons
 
-CTRL_FNS = {
-    DISPLAY: ctrl_display,
-    CHANGE_HOURS: ctrl_chg_hrs,
-    CHANGE_MINUTES: ctrl_chg_mns,
-    CHANGE_SECONDS: ctrl_chg_sec,
-    CHANGE_NAME: ctrl_chg_nam
-}
-RENDER_FNS = {
-    DISPLAY: render_display,
-    CHANGE_HOURS: render_chg_hrs,
-    CHANGE_MINUTES: render_chg_mns,
-    CHANGE_SECONDS: render_chg_sec,
-    CHANGE_NAME: render_chg_nam
-}
-
 SECOND = 1
 MINUTE = 60 * SECOND
 HOUR = 60 * MINUTE
+
+WORKAROUND_OFFSET = None
+def detect_workaround_offset():
+    global WORKAROUND_OFFSET
+
+    old = utime.time()
+    utime.set_time(old)
+    new = utime.time()
+
+    WORKAROUND_OFFSET = old - new
 
 def ctrl_display(bs):
     global MODE
@@ -194,9 +189,9 @@ def ctrl_chg_hrs(bs):
     if bs & BUTTON_SEL:
         MODE = CHANGE_MINUTES
     if bs & BUTTON_UP:
-        utime.set_time(utime.time() + 1 * HOUR)
+        utime.set_time(utime.time() + HOUR + WORKAROUND_OFFSET)
     if bs & BUTTON_DOWN:
-        utime.set_time(utime.time() - 1 * HOUR)
+        utime.set_time(utime.time() - HOUR + WORKAROUND_OFFSET)
 
 def ctrl_chg_mns(bs):
     if bs & BUTTON_SEL_LONG:
@@ -204,9 +199,9 @@ def ctrl_chg_mns(bs):
     if bs & BUTTON_SEL:
         MODE = CHANGE_SECONDS
     if bs & BUTTON_UP:
-        utime.set_time(utime.time() + 1 * MINUTE)
+        utime.set_time(utime.time() + MINUTE + WORKAROUND_OFFSET)
     if bs & BUTTON_DOWN:
-        utime.set_time(utime.time() - 1 * MINUTE)
+        utime.set_time(utime.time() - MINUTE + WORKAROUND_OFFSET)
 
 def ctrl_chg_sec(bs):
     global name_idx
@@ -216,9 +211,9 @@ def ctrl_chg_sec(bs):
         MODE = CHANGE_NAME
         name_idx = 0
     if bs & BUTTON_UP:
-        utime.set_time(utime.time() + 1 * SECOND)
+        utime.set_time(utime.time() + SECOND + WORKAROUND_OFFSET)
     if bs & BUTTON_DOWN:
-        utime.set_time(utime.time() - 1 * SECOND)
+        utime.set_time(utime.time() - SECOND + WORKAROUND_OFFSET)
 
 name_idx = 0
 def ctrl_chg_nam(bs):
@@ -229,6 +224,14 @@ def ctrl_chg_nam(bs):
         MODE = CHANGE_HOURS
         name_idx = 0
     # TODO
+
+CTRL_FNS = {
+    DISPLAY: ctrl_display,
+    CHANGE_HOURS: ctrl_chg_hrs,
+    CHANGE_MINUTES: ctrl_chg_mns,
+    CHANGE_SECONDS: ctrl_chg_sec,
+    CHANGE_NAME: ctrl_chg_nam
+}
 
 def render(d):
     ltime = utime.localtime()
@@ -246,17 +249,21 @@ def render(d):
         renderColon(d)
 
     if MODE != CHANGE_MINUTES or secs % 2 == 0:
-        renderNum(d, mins, False, False, 13)
+        renderNum(d, mins, 13)
 
     renderText(d, NAME, None)
 
     d.update()
 
-try:
-    with display.open() as d:
-        while True:
-            bs = checkButtons()
-            CTRL_FNS[MODE](bs)
-            render(d)
-except KeyboardInterrupt:
-    pass
+def main():
+    try:
+        detect_workaround_offset()
+        with display.open() as d:
+            while True:
+                bs = checkButtons()
+                CTRL_FNS[MODE](bs)
+                render(d)
+    except KeyboardInterrupt:
+        pass
+
+main()
