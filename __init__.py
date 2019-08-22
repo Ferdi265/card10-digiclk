@@ -226,7 +226,7 @@ def load_nickname():
     global NAME
     if FILENAME in os.listdir('.'):
         with open("nickname.txt", "rb") as f:
-            name = f.read()
+            name = f.read().strip()
     else:
         name = b'no nick'
 
