@@ -1,5 +1,6 @@
 import display
 import leds
+import buttons
 import utime
 
 def ceilDiv(a, b):
@@ -103,16 +104,13 @@ MODES = {
 }
 NAME = bytearray(b'   yrlf')
 
-def renderNum(d, num, blank1, blank2, x):
-    if not blank1:
-        drawGrid7Seg(d, x, 0, 7, DIGITS[num // 10], (255, 255, 255))
-    if not blank2:
-        drawGrid7Seg(d, x + 5, 0, 7, DIGITS[num % 10], (255, 255, 255))
+def renderNum(d, num, x):
+    drawGrid7Seg(d, x, 0, 7, DIGITS[num // 10], (255, 255, 255))
+    drawGrid7Seg(d, x + 5, 0, 7, DIGITS[num % 10], (255, 255, 255))
 
-def renderColon(d, blank):
-    if not blank:
-        drawGridVSeg(d, 11, 2, 7, 2, (255, 255, 255))
-        drawGridVSeg(d, 11, 4, 7, 2, (255, 255, 255))
+def renderColon(d):
+    drawGridVSeg(d, 11, 2, 7, 2, (255, 255, 255))
+    drawGridVSeg(d, 11, 4, 7, 2, (255, 255, 255))
 
 def renderText(d, text, blankidx = None):
     bs = bytearray(text)
@@ -137,67 +135,128 @@ def checkButtons():
 
     t = utime.time()
     pressed = buttons.read(buttons.BOTTOM_LEFT | buttons.TOP_RIGHT | buttons.BOTTOM_RIGHT)
-    buttons = 0
+    cur_buttons = 0
 
     if pressed & buttons.BOTTOM_LEFT and not pressed_prev & buttons.BOTTOM_LEFT:
         button_sel_time = t
     elif not pressed & buttons.BOTTOM_LEFT and pressed_prev & buttons.BOTTOM_LEFT:
         if button_sel_time < t:
-            buttons |= BUTTON_SEL_LONG
+            cur_buttons |= BUTTON_SEL_LONG
         else:
-            buttons |= BUTTON_SEL
+            cur_buttons |= BUTTON_SEL
 
     if pressed & buttons.TOP_RIGHT and not pressed_prev & buttons.TOP_RIGHT:
         button_sel_time = t
     elif not pressed & buttons.TOP_RIGHT and pressed_prev & buttons.TOP_RIGHT:
         if button_sel_time < t:
-            buttons |= BUTTON_UP_LONG
+            cur_buttons |= BUTTON_UP_LONG
         else:
-            buttons |= BUTTON_UP
+            cur_buttons |= BUTTON_UP
 
     if pressed & buttons.BOTTOM_RIGHT and not pressed_prev & buttons.BOTTOM_RIGHT:
         button_sel_time = t
     elif not pressed & buttons.BOTTOM_RIGHT and pressed_prev & buttons.BOTTOM_RIGHT:
         if button_sel_time < t:
-            buttons |= BUTTON_DOWN_LONG
+            cur_buttons |= BUTTON_DOWN_LONG
         else:
-            buttons |= BUTTON_DOWN
+            cur_buttons |= BUTTON_DOWN
 
     pressed_prev = pressed
-    return buttons
+    return cur_buttons
 
-def render():
-    with display.open() as d:
-        ltime = utime.localtime()
-        hours = ltime[3]
-        mins = ltime[4]
-        secs = ltime[5]
+CTRL_FNS = {
+    DISPLAY: ctrl_display,
+    CHANGE_HOURS: ctrl_chg_hrs,
+    CHANGE_MINUTES: ctrl_chg_mns,
+    CHANGE_SECONDS: ctrl_chg_sec,
+    CHANGE_NAME: ctrl_chg_nam
+}
+RENDER_FNS = {
+    DISPLAY: render_display,
+    CHANGE_HOURS: render_chg_hrs,
+    CHANGE_MINUTES: render_chg_mns,
+    CHANGE_SECONDS: render_chg_sec,
+    CHANGE_NAME: render_chg_nam
+}
 
-        d.clear()
-        #drawGrid(d, 1, 0, 22, 7, 7, (255, 0, 0))
+SECOND = 1
+MINUTE = 60 * SECOND
+HOUR = 60 * MINUTE
 
-        renderNum(d, hours, False, False, 1)
-        renderColon(d, secs % 2 == 1)
+def ctrl_display(bs):
+    global MODE
+    if bs & BUTTON_SEL_LONG:
+        MODE = CHANGE_HOURS
+
+def ctrl_chg_hrs(bs):
+    if bs & BUTTON_SEL_LONG:
+        MODE = DISPLAY
+    if bs & BUTTON_SEL:
+        MODE = CHANGE_MINUTES
+    if bs & BUTTON_UP:
+        utime.set_time(utime.time() + 1 * HOUR)
+    if bs & BUTTON_DOWN:
+        utime.set_time(utime.time() - 1 * HOUR)
+
+def ctrl_chg_mns(bs):
+    if bs & BUTTON_SEL_LONG:
+        MODE = DISPLAY
+    if bs & BUTTON_SEL:
+        MODE = CHANGE_SECONDS
+    if bs & BUTTON_UP:
+        utime.set_time(utime.time() + 1 * MINUTE)
+    if bs & BUTTON_DOWN:
+        utime.set_time(utime.time() - 1 * MINUTE)
+
+def ctrl_chg_sec(bs):
+    global name_idx
+    if bs & BUTTON_SEL_LONG:
+        MODE = DISPLAY
+    if bs & BUTTON_SEL:
+        MODE = CHANGE_NAME
+        name_idx = 0
+    if bs & BUTTON_UP:
+        utime.set_time(utime.time() + 1 * SECOND)
+    if bs & BUTTON_DOWN:
+        utime.set_time(utime.time() - 1 * SECOND)
+
+name_idx = 0
+def ctrl_chg_nam(bs):
+    global name_idx
+    if bs & BUTTON_SEL_LONG:
+        MODE = DISPLAY
+    if bs & BUTTON_SEL:
+        MODE = CHANGE_HOURS
+        name_idx = 0
+    # TODO
+
+def render(d):
+    ltime = utime.localtime()
+    hours = ltime[3]
+    mins = ltime[4]
+    secs = ltime[5]
+
+    d.clear()
+    #drawGrid(d, 1, 0, 22, 7, 7, (255, 0, 0))
+
+    if MODE != CHANGE_HOURS or secs % 2 == 0:
+        renderNum(d, hours, 1)
+
+    if secs % 2 == 0:
+        renderColon(d)
+
+    if MODE != CHANGE_MINUTES or secs % 2 == 0:
         renderNum(d, mins, False, False, 13)
-        renderText(d, NAME, [])
 
-        d.update()
+    renderText(d, NAME, None)
+
+    d.update()
 
 try:
-    while True:
-        bs = checkButtons()
-        if bs & BUTTON_SEL:
-            print("SEL")
-        if bs & BUTTON_SEL_LONG:
-            print("SEL (long)")
-        if bs & BUTTON_UP:
-            print("UP")
-        if bs & BUTTON_UP_LONG:
-            print("UP (long)")
-        if bs & BUTTON_DOWN:
-            print("DOWN")
-        if bs & BUTTON_DOWN_LONG:
-            print("DOWN (long)")
-        render()
+    with display.open() as d:
+        while True:
+            bs = checkButtons()
+            CTRL_FNS[MODE](bs)
+            render(d)
 except KeyboardInterrupt:
     pass
