@@ -226,12 +226,14 @@ def load_nickname():
     global NAME
     if FILENAME in os.listdir('.'):
         with open("nickname.txt", "rb") as f:
-            name = f.read().rjust(7, b' ')
+            name = f.read()
     else:
         name = b'no nick'
 
     if len(name) > 7:
         name = name[0:7]
+    else:
+        name = b' ' * (7 - len(name)) + name
 
     NAME = name
 
