@@ -89,24 +89,6 @@ DIGITS = [
     (True, True, True, True, False, True, True)
 ]
 
-DISPLAY = 0
-CHANGE_HOURS = 1
-CHANGE_MINUTES = 2
-CHANGE_SECONDS = 3
-CHANGE_YEAR = 4
-CHANGE_MONTH = 5
-CHANGE_DAY = 6
-MODE = DISPLAY
-MODES = {
-    DISPLAY: '---',
-    CHANGE_HOURS: 'HRS',
-    CHANGE_MINUTES: 'MNS',
-    CHANGE_SECONDS: 'SEC',
-    CHANGE_YEAR: 'YRS',
-    CHANGE_MONTH: 'MTH',
-    CHANGE_DAY: 'DAY',
-}
-
 def renderNum(d, num, x):
     drawGrid7Seg(d, x, 0, 7, DIGITS[num // 10], (255, 255, 255))
     drawGrid7Seg(d, x + 5, 0, 7, DIGITS[num % 10], (255, 255, 255))
@@ -125,6 +107,24 @@ def renderText(d, text, blankidx = None):
 
 def renderBar(d, num):
     d.rect(20, 78, 20 + num * 2, 80, col = (255, 255, 255))
+
+def render(d):
+    ltime = utime.localtime()
+    hours = ltime[3]
+    mins = ltime[4]
+    secs = ltime[5]
+
+    d.clear()
+
+    if secs % 2 == 0:
+        renderColon(d)
+
+    renderNum(d, hours, 1)
+    renderNum(d, mins, 13)
+    renderText(d, NAME, None)
+    renderBar(d, secs)
+
+    d.update()
 
 BUTTON_SEL = 1 << 0
 BUTTON_UP = 1 << 1
@@ -170,35 +170,6 @@ def checkButtons():
     pressed_prev = pressed
     return cur_buttons
 
-SECOND = 1
-MINUTE = 60 * SECOND
-HOUR = 60 * MINUTE
-
-WORKAROUND_OFFSET = None
-def detect_workaround_offset():
-    global WORKAROUND_OFFSET
-
-    old = utime.time()
-    utime.set_time(old)
-    new = utime.time()
-
-    WORKAROUND_OFFSET = old - new
-    utime.set_time(old + WORKAROUND_OFFSET)
-
-NAME = None
-def load_nickname():
-    global NAME
-    try:
-        with open("nickname.txt", "rb") as f:
-            name = f.read().rjust(7, b' ')
-    except FileNotFoundError:
-        name = b'no nick'
-
-    if len(name) > 7:
-        name = name[0:7]
-
-    NAME = name
-
 def ctrl_display(bs):
     global MODE
     if bs & BUTTON_SEL_LONG:
@@ -237,30 +208,61 @@ def ctrl_chg_sec(bs):
     if bs & BUTTON_DOWN:
         utime.set_time(utime.time() - SECOND + WORKAROUND_OFFSET)
 
+WORKAROUND_OFFSET = None
+def detect_workaround_offset():
+    global WORKAROUND_OFFSET
+
+    old = utime.time()
+    utime.set_time(old)
+    new = utime.time()
+
+    WORKAROUND_OFFSET = old - new
+    utime.set_time(old + WORKAROUND_OFFSET)
+
+NAME = None
+def load_nickname():
+    global NAME
+    try:
+        with open("nickname.txt", "rb") as f:
+            name = f.read().rjust(7, b' ')
+    except FileNotFoundError:
+        name = b'no nick'
+
+    if len(name) > 7:
+        name = name[0:7]
+
+    NAME = name
+
+SECOND = 1
+MINUTE = 60 * SECOND
+HOUR = 60 * MINUTE
+
+# MODE values
+DISPLAY = 0
+CHANGE_HOURS = 1
+CHANGE_MINUTES = 2
+CHANGE_SECONDS = 3
+CHANGE_YEAR = 4
+CHANGE_MONTH = 5
+CHANGE_DAY = 6
+
+MODE = DISPLAY
+MODES = {
+    DISPLAY: '---',
+    CHANGE_HOURS: 'HRS',
+    CHANGE_MINUTES: 'MNS',
+    CHANGE_SECONDS: 'SEC',
+    CHANGE_YEAR: 'YRS',
+    CHANGE_MONTH: 'MTH',
+    CHANGE_DAY: 'DAY',
+}
+
 CTRL_FNS = {
     DISPLAY: ctrl_display,
     CHANGE_HOURS: ctrl_chg_hrs,
     CHANGE_MINUTES: ctrl_chg_mns,
     CHANGE_SECONDS: ctrl_chg_sec
 }
-
-def render(d):
-    ltime = utime.localtime()
-    hours = ltime[3]
-    mins = ltime[4]
-    secs = ltime[5]
-
-    d.clear()
-
-    if secs % 2 == 0:
-        renderColon(d)
-
-    renderNum(d, hours, 1)
-    renderNum(d, mins, 13)
-    renderText(d, NAME, None)
-    renderBar(d, secs)
-
-    d.update()
 
 def main():
     try:
