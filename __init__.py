@@ -111,17 +111,29 @@ def renderBar(d, num):
 
 def render(d):
     ltime = utime.localtime()
+    years = ltime[0]
+    months = ltime[1]
+    days = ltime[2]
     hours = ltime[3]
     mins = ltime[4]
     secs = ltime[5]
 
     d.clear()
 
-    if secs % 2 == 0:
+    if MODE == CHANGE_YEAR:
+        renderNum(d, years // 100, 1)
+        renderNum(d, years % 100, 13)
+    elif MODE == CHANGE_MONTH:
+        renderNum(d, months, 13)
+    elif MODE == CHANGE_DAY:
+        renderNum(d, days, 13)
+    else:
+        renderNum(d, hours, 1)
+        renderNum(d, mins, 13)
+
+    if MODE not in (CHANGE_YEAR, CHANGE_MONTH, CHANGE_DAY) and secs % 2 == 0:
         renderColon(d)
 
-    renderNum(d, hours, 1)
-    renderNum(d, mins, 13)
     renderText(d, NAME, None)
     renderBar(d, secs)
 
@@ -171,6 +183,11 @@ def checkButtons():
     pressed_prev = pressed
     return cur_buttons
 
+def modTime(yrs, mth, day, hrs, mns, sec):
+    ltime = utime.localtime()
+    new = utime.mktime((ltime[0] + yrs, ltime[1] + mth, ltime[2] + day, ltime[3] + hrs, ltime[4] + mns, ltime[5] + sec, None, None))
+    utime.set_time(new + WORKAROUND_OFFSET)
+
 def ctrl_display(bs):
     global MODE
     if bs & BUTTON_SEL_LONG:
@@ -182,10 +199,10 @@ def ctrl_chg_hrs(bs):
         MODE = DISPLAY
     if bs & BUTTON_SEL:
         MODE = CHANGE_MINUTES
-    if bs & BUTTON_UP:
-        utime.set_time(utime.time() + HOUR + WORKAROUND_OFFSET)
-    if bs & BUTTON_DOWN:
-        utime.set_time(utime.time() - HOUR + WORKAROUND_OFFSET)
+    if bs & BUTTON_UP or bs & BUTTON_UP_LONG:
+        modTime(0, 0, 0, 1, 0, 0)
+    if bs & BUTTON_DOWN or bs & BUTTON_DOWN_LONG:
+        modTime(0, 0, 0, -1, 0, 0)
 
 def ctrl_chg_mns(bs):
     global MODE
@@ -193,21 +210,54 @@ def ctrl_chg_mns(bs):
         MODE = DISPLAY
     if bs & BUTTON_SEL:
         MODE = CHANGE_SECONDS
-    if bs & BUTTON_UP:
-        utime.set_time(utime.time() + MINUTE + WORKAROUND_OFFSET)
-    if bs & BUTTON_DOWN:
-        utime.set_time(utime.time() - MINUTE + WORKAROUND_OFFSET)
+    if bs & BUTTON_UP or bs & BUTTON_UP_LONG:
+        modTime(0, 0, 0, 0, 1, 0)
+    if bs & BUTTON_DOWN or bs & BUTTON_DOWN_LONG:
+        modTime(0, 0, 0, 0, -1, 0)
 
 def ctrl_chg_sec(bs):
     global MODE
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
     if bs & BUTTON_SEL:
+        MODE = CHANGE_YEAR
+    if bs & BUTTON_UP or bs & BUTTON_UP_LONG:
+        modTime(0, 0, 0, 0, 0, 1)
+    if bs & BUTTON_DOWN or bs & BUTTON_DOWN_LONG:
+        modTime(0, 0, 0, 0, 0, -1)
+
+def ctrl_chg_yrs(bs):
+    global MODE
+    if bs & BUTTON_SEL_LONG:
+        MODE = DISPLAY
+    if bs & BUTTON_SEL:
+        MODE = CHANGE_MONTH
+    if bs & BUTTON_UP or bs & BUTTON_UP_LONG:
+        modTime(1, 0, 0, 0, 0, 0)
+    if bs & BUTTON_DOWN or bs & BUTTON_DOWN_LONG:
+        modTime(-1, 0, 0, 0, 0, 0)
+
+def ctrl_chg_mth(bs):
+    global MODE
+    if bs & BUTTON_SEL_LONG:
+        MODE = DISPLAY
+    if bs & BUTTON_SEL:
+        MODE = CHANGE_DAY
+    if bs & BUTTON_UP or bs & BUTTON_UP_LONG:
+        modTime(0, 1, 0, 0, 0, 0)
+    if bs & BUTTON_DOWN or bs & BUTTON_DOWN_LONG:
+        modTime(0, -1, 0, 0, 0, 0)
+
+def ctrl_chg_day(bs):
+    global MODE
+    if bs & BUTTON_SEL_LONG:
+        MODE = DISPLAY
+    if bs & BUTTON_SEL:
         MODE = CHANGE_HOURS
-    if bs & BUTTON_UP:
-        utime.set_time(utime.time() + SECOND + WORKAROUND_OFFSET)
-    if bs & BUTTON_DOWN:
-        utime.set_time(utime.time() - SECOND + WORKAROUND_OFFSET)
+    if bs & BUTTON_UP or bs & BUTTON_UP_LONG:
+        modTime(0, 0, 1, 0, 0, 0)
+    if bs & BUTTON_DOWN or bs & BUTTON_DOWN_LONG:
+        modTime(0, 0, -1, 0, 0, 0)
 
 WORKAROUND_OFFSET = None
 def detect_workaround_offset():
@@ -237,10 +287,6 @@ def load_nickname():
 
     NAME = name
 
-SECOND = 1
-MINUTE = 60 * SECOND
-HOUR = 60 * MINUTE
-
 # MODE values
 DISPLAY = 0
 CHANGE_HOURS = 1
@@ -265,7 +311,10 @@ CTRL_FNS = {
     DISPLAY: ctrl_display,
     CHANGE_HOURS: ctrl_chg_hrs,
     CHANGE_MINUTES: ctrl_chg_mns,
-    CHANGE_SECONDS: ctrl_chg_sec
+    CHANGE_SECONDS: ctrl_chg_sec,
+    CHANGE_YEAR: ctrl_chg_yrs,
+    CHANGE_MONTH: ctrl_chg_mth,
+    CHANGE_DAY: ctrl_chg_day,
 }
 
 def main():
