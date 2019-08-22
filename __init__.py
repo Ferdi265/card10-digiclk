@@ -101,6 +101,7 @@ MODES = {
     CHANGE_MINUTES: 'SEC',
     CHANGE_NAME: 'NAM'
 }
+NAME = bytearray(b'   yrlf')
 
 def renderNum(d, num, blank1, blank2, x):
     if not blank1:
@@ -113,11 +114,12 @@ def renderColon(d, blank):
         drawGridVSeg(d, 11, 2, 7, 2, (255, 255, 255))
         drawGridVSeg(d, 11, 4, 7, 2, (255, 255, 255))
 
-def renderText(d, text, blanks):
+def renderText(d, text, blankidx = None):
     bs = bytearray(text.encode())
-    for i, b in enumerate(blanks):
-        if b:
-            bs[i:i+1] = b'_'
+
+    if blankidx != None:
+        bs[blankidx:blankidx+1] = b'_'
+
     d.print(MODES[MODE] + ' ' + bs.decode(), fg = (255, 255, 255), bg = None, posx = 0, posy = 7 * 8)
 
 def render():
@@ -133,7 +135,7 @@ def render():
         renderNum(d, hours, False, False, 1)
         renderColon(d, secs % 2 == 1)
         renderNum(d, mins, False, False, 13)
-        renderText(d, "yrlf", [])
+        renderText(d, NAME, [])
 
         d.update()
 
