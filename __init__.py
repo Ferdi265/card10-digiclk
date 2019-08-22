@@ -102,7 +102,6 @@ MODES = {
     CHANGE_SECONDS: 'SEC',
     CHANGE_NAME: 'NAM'
 }
-NAME = bytearray(b'   yrlf')
 
 def renderNum(d, num, x):
     drawGrid7Seg(d, x, 0, 7, DIGITS[num // 10], (255, 255, 255))
@@ -181,6 +180,20 @@ def detect_workaround_offset():
 
     WORKAROUND_OFFSET = old - new
     utime.set_time(old + WORKAROUND_OFFSET)
+
+NAME = None
+def load_nickname():
+    global NAME
+    try:
+        with open("nickname.txt", "rb") as f:
+            name = f.read().rjust(7, b' ')
+    except FileNotFoundError:
+        name = b'no nick'
+
+    if len(name) > 7:
+        name = name[0:7]
+
+    NAME = name
 
 def ctrl_display(bs):
     global MODE
@@ -264,6 +277,7 @@ def render(d):
 def main():
     try:
         detect_workaround_offset()
+        load_nickname()
         with display.open() as d:
             while True:
                 bs = checkButtons()
