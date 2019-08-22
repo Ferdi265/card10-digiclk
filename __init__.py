@@ -177,6 +177,7 @@ def detect_workaround_offset():
     new = utime.time()
 
     WORKAROUND_OFFSET = old - new
+    utime.set_time(old + WORKAROUND_OFFSET)
 
 def ctrl_display(bs):
     global MODE
