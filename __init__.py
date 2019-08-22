@@ -93,14 +93,18 @@ DISPLAY = 0
 CHANGE_HOURS = 1
 CHANGE_MINUTES = 2
 CHANGE_SECONDS = 3
-CHANGE_NAME = 4
+CHANGE_YEAR = 4
+CHANGE_MONTH = 5
+CHANGE_DAY = 6
 MODE = DISPLAY
 MODES = {
     DISPLAY: '---',
     CHANGE_HOURS: 'HRS',
     CHANGE_MINUTES: 'MNS',
     CHANGE_SECONDS: 'SEC',
-    CHANGE_NAME: 'NAM'
+    CHANGE_YEAR: 'YRS',
+    CHANGE_MONTH: 'MTH',
+    CHANGE_DAY: 'DAY',
 }
 
 def renderNum(d, num, x):
@@ -223,33 +227,21 @@ def ctrl_chg_mns(bs):
         utime.set_time(utime.time() - MINUTE + WORKAROUND_OFFSET)
 
 def ctrl_chg_sec(bs):
-    global MODE, name_idx
+    global MODE
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
     if bs & BUTTON_SEL:
-        MODE = CHANGE_NAME
-        name_idx = 0
+        MODE = CHANGE_HOURS
     if bs & BUTTON_UP:
         utime.set_time(utime.time() + SECOND + WORKAROUND_OFFSET)
     if bs & BUTTON_DOWN:
         utime.set_time(utime.time() - SECOND + WORKAROUND_OFFSET)
 
-name_idx = 0
-def ctrl_chg_nam(bs):
-    global MODE, name_idx
-    if bs & BUTTON_SEL_LONG:
-        MODE = DISPLAY
-    if bs & BUTTON_SEL:
-        MODE = CHANGE_HOURS
-        name_idx = 0
-    # TODO
-
 CTRL_FNS = {
     DISPLAY: ctrl_display,
     CHANGE_HOURS: ctrl_chg_hrs,
     CHANGE_MINUTES: ctrl_chg_mns,
-    CHANGE_SECONDS: ctrl_chg_sec,
-    CHANGE_NAME: ctrl_chg_nam
+    CHANGE_SECONDS: ctrl_chg_sec
 }
 
 def render(d):
@@ -259,17 +251,13 @@ def render(d):
     secs = ltime[5]
 
     d.clear()
-    #drawGrid(d, 1, 0, 22, 7, 7, (255, 0, 0))
-
-    renderNum(d, hours, 1)
 
     if secs % 2 == 0:
         renderColon(d)
 
+    renderNum(d, hours, 1)
     renderNum(d, mins, 13)
-
     renderText(d, NAME, None)
-
     renderBar(d, secs)
 
     d.update()
