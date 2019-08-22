@@ -1,3 +1,4 @@
+import os
 import display
 import leds
 import buttons
@@ -220,12 +221,13 @@ def detect_workaround_offset():
     utime.set_time(old + WORKAROUND_OFFSET)
 
 NAME = None
+FILENAME = 'nickname.txt'
 def load_nickname():
     global NAME
-    try:
+    if FILENAME in os.listdir('.'):
         with open("nickname.txt", "rb") as f:
             name = f.read().rjust(7, b' ')
-    except FileNotFoundError:
+    else:
         name = b'no nick'
 
     if len(name) > 7:
