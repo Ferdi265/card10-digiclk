@@ -2,7 +2,7 @@ import os
 import display
 import leds
 import buttons
-from . import time
+import time
 
 def ceilDiv(a, b):
     return (a + (b - 1)) // b
