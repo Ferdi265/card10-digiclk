@@ -139,7 +139,7 @@ def render(d):
 
     d.update()
 
-LONG_DELAY = 600
+LONG_DELAY = 400
 BUTTON_SEL = 1 << 0
 BUTTON_SEL_LONG = 1 << 1
 BUTTON_UP = 1 << 2
@@ -249,9 +249,9 @@ def ctrl_chg_yrs(bs):
     if bs & BUTTON_SEL:
         MODE = CHANGE_MONTH
     if bs & BUTTON_UP_LONG:
-        modTime(100, 0, 0, 0, 0, 0)
+        modTime(10, 0, 0, 0, 0, 0)
     if bs & BUTTON_DOWN_LONG:
-        modTime(-100, 0, 0, 0, 0, 0)
+        modTime(-10, 0, 0, 0, 0, 0)
     if bs & BUTTON_UP:
         modTime(1, 0, 0, 0, 0, 0)
     if bs & BUTTON_DOWN:
