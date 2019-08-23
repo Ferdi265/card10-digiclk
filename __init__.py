@@ -141,8 +141,11 @@ def render(d):
 
 LONG_DELAY = 600
 BUTTON_SEL = 1 << 0
+BUTTON_SEL_LONG = BUTTON_SEL << 1
 BUTTON_UP = 1 << 2
+BUTTON_UP_LONG = BUTTON_UP << 1
 BUTTON_DOWN = 1 << 4
+BUTTON_DOWN_LONG = BUTTON_DOWN << 1
 pressed_prev = 0
 button_long_prev = {
     BUTTON_SEL: False,
