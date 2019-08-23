@@ -144,6 +144,11 @@ BUTTON_SEL = 1 << 0
 BUTTON_UP = 1 << 2
 BUTTON_DOWN = 1 << 4
 pressed_prev = 0
+button_long_prev = {
+    BUTTON_SEL: False,
+    BUTTON_UP: False,
+    BUTTON_DOWN: False
+}
 button_times = {
     BUTTON_SEL: 0,
     BUTTON_UP: 0,
@@ -154,11 +159,13 @@ def checkButton(button, osbutton, pressed, t):
 
     if pressed & osbutton and not pressed_prev & osbutton:
         button_times[button] = t
+        button_long_prev[button] = False
     elif pressed_prev & osbutton:
         if button_times[button] + LONG_DELAY < t:
             cur_buttons |= button << 1
             button_times[button] = t
-        elif not pressed & osbutton:
+            button_long_prev[button] = True
+        elif not pressed & osbutton and not button_long_prev[button]:
             cur_buttons |= button
 
     return cur_buttons
