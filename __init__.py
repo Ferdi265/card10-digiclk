@@ -2,7 +2,7 @@ import os
 import display
 import leds
 import buttons
-import utime
+from . import time
 
 def ceilDiv(a, b):
     return (a + (b - 1)) // b
@@ -110,7 +110,7 @@ def renderBar(d, num):
     d.rect(20, 78, 20 + num * 2, 80, col = (255, 255, 255))
 
 def render(d):
-    ltime = utime.localtime()
+    ltime = time.localtime()
     years = ltime[0]
     months = ltime[1]
     days = ltime[2]
@@ -176,7 +176,7 @@ def checkButton(button, button_long, osbutton, pressed, t):
 def checkButtons():
     global pressed_prev
 
-    t = utime.time_ms()
+    t = time.time_monotonic_ms()
     pressed = buttons.read(buttons.BOTTOM_LEFT | buttons.TOP_RIGHT | buttons.BOTTOM_RIGHT)
     cur_buttons = 0
 
@@ -188,9 +188,9 @@ def checkButtons():
     return cur_buttons
 
 def modTime(yrs, mth, day, hrs, mns, sec):
-    ltime = utime.localtime()
-    new = utime.mktime((ltime[0] + yrs, ltime[1] + mth, ltime[2] + day, ltime[3] + hrs, ltime[4] + mns, ltime[5] + sec, None, None))
-    utime.set_time(new)
+    ltime = time.localtime()
+    new = time.mktime((ltime[0] + yrs, ltime[1] + mth, ltime[2] + day, ltime[3] + hrs, ltime[4] + mns, ltime[5] + sec, None, None))
+    time.set_time(new)
 
 def ctrl_display(bs):
     global MODE
