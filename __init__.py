@@ -141,11 +141,11 @@ def render(d):
 
 LONG_DELAY = 600
 BUTTON_SEL = 1 << 0
-BUTTON_SEL_LONG = BUTTON_SEL << 1
+BUTTON_SEL_LONG = 1 << 1
 BUTTON_UP = 1 << 2
-BUTTON_UP_LONG = BUTTON_UP << 1
+BUTTON_UP_LONG = 1 << 3
 BUTTON_DOWN = 1 << 4
-BUTTON_DOWN_LONG = BUTTON_DOWN << 1
+BUTTON_DOWN_LONG = 1 << 5
 pressed_prev = 0
 button_long_prev = {
     BUTTON_SEL: False,
@@ -157,7 +157,7 @@ button_times = {
     BUTTON_UP: 0,
     BUTTON_DOWN: 0
 }
-def checkButton(button, osbutton, pressed, t):
+def checkButton(button, button_long, osbutton, pressed, t):
     cur_buttons = 0
 
     if pressed & osbutton and not pressed_prev & osbutton:
@@ -165,7 +165,7 @@ def checkButton(button, osbutton, pressed, t):
         button_long_prev[button] = False
     elif pressed_prev & osbutton:
         if button_times[button] + LONG_DELAY < t:
-            cur_buttons |= button << 1
+            cur_buttons |= button_long
             button_times[button] = t
             button_long_prev[button] = True
         elif not pressed & osbutton and not button_long_prev[button]:
@@ -180,9 +180,9 @@ def checkButtons():
     pressed = buttons.read(buttons.BOTTOM_LEFT | buttons.TOP_RIGHT | buttons.BOTTOM_RIGHT)
     cur_buttons = 0
 
-    cur_buttons |= checkButton(BUTTON_SEL, buttons.BOTTOM_LEFT, pressed, t)
-    cur_buttons |= checkButton(BUTTON_UP, buttons.TOP_RIGHT, pressed, t)
-    cur_buttons |= checkButton(BUTTON_DOWN, buttons.BOTTOM_RIGHT, pressed, t)
+    cur_buttons |= checkButton(BUTTON_SEL, BUTTON_SEL_LONG, buttons.BOTTOM_LEFT, pressed, t)
+    cur_buttons |= checkButton(BUTTON_UP, BUTTON_UP_LONG, buttons.TOP_RIGHT, pressed, t)
+    cur_buttons |= checkButton(BUTTON_DOWN, BUTTON_DOWN_LONG, buttons.BOTTOM_RIGHT, pressed, t)
 
     pressed_prev = pressed
     return cur_buttons
