@@ -152,30 +152,30 @@ button_down_time = 0
 def checkButtons():
     global pressed_prev, button_sel_time, button_up_time, button_down_time
 
-    t = utime.time()
+    t = utime.time_ms()
     pressed = buttons.read(buttons.BOTTOM_LEFT | buttons.TOP_RIGHT | buttons.BOTTOM_RIGHT)
     cur_buttons = 0
 
     if pressed & buttons.BOTTOM_LEFT and not pressed_prev & buttons.BOTTOM_LEFT:
         button_sel_time = t
     elif not pressed & buttons.BOTTOM_LEFT and pressed_prev & buttons.BOTTOM_LEFT:
-        if button_sel_time < t:
+        if button_sel_time + 1000 < t:
             cur_buttons |= BUTTON_SEL_LONG
         else:
             cur_buttons |= BUTTON_SEL
 
     if pressed & buttons.TOP_RIGHT and not pressed_prev & buttons.TOP_RIGHT:
-        button_sel_time = t
+        button_up_time = t
     elif not pressed & buttons.TOP_RIGHT and pressed_prev & buttons.TOP_RIGHT:
-        if button_sel_time < t:
+        if button_up_time + 1000 < t:
             cur_buttons |= BUTTON_UP_LONG
         else:
             cur_buttons |= BUTTON_UP
 
     if pressed & buttons.BOTTOM_RIGHT and not pressed_prev & buttons.BOTTOM_RIGHT:
-        button_sel_time = t
+        button_down_time = t
     elif not pressed & buttons.BOTTOM_RIGHT and pressed_prev & buttons.BOTTOM_RIGHT:
-        if button_sel_time < t:
+        if button_down_time + 1000 < t:
             cur_buttons |= BUTTON_DOWN_LONG
         else:
             cur_buttons |= BUTTON_DOWN
@@ -186,7 +186,7 @@ def checkButtons():
 def modTime(yrs, mth, day, hrs, mns, sec):
     ltime = utime.localtime()
     new = utime.mktime((ltime[0] + yrs, ltime[1] + mth, ltime[2] + day, ltime[3] + hrs, ltime[4] + mns, ltime[5] + sec, None, None))
-    utime.set_time(new + WORKAROUND_OFFSET)
+    utime.set_time(new)
 
 def ctrl_display(bs):
     global MODE
@@ -259,17 +259,6 @@ def ctrl_chg_day(bs):
     if bs & BUTTON_DOWN or bs & BUTTON_DOWN_LONG:
         modTime(0, 0, -1, 0, 0, 0)
 
-WORKAROUND_OFFSET = None
-def detect_workaround_offset():
-    global WORKAROUND_OFFSET
-
-    old = utime.time()
-    utime.set_time(old)
-    new = utime.time()
-
-    WORKAROUND_OFFSET = old - new
-    utime.set_time(old + WORKAROUND_OFFSET)
-
 NAME = None
 FILENAME = 'nickname.txt'
 def load_nickname():
@@ -319,7 +308,6 @@ CTRL_FNS = {
 
 def main():
     try:
-        detect_workaround_offset()
         load_nickname()
         with display.open() as d:
             while True:
