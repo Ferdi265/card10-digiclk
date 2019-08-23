@@ -139,46 +139,40 @@ def render(d):
 
     d.update()
 
+LONG_DELAY = 600
 BUTTON_SEL = 1 << 0
-BUTTON_UP = 1 << 1
-BUTTON_DOWN = 1 << 2
-BUTTON_SEL_LONG = 1 << 3
-BUTTON_UP_LONG = 1 << 4
-BUTTON_DOWN_LONG = 1 << 5
+BUTTON_UP = 1 << 2
+BUTTON_DOWN = 1 << 4
 pressed_prev = 0
-button_sel_time = 0
-button_up_time = 0
-button_down_time = 0
+button_times = {
+    BUTTON_SEL: 0,
+    BUTTON_UP: 0,
+    BUTTON_DOWN: 0
+}
+def checkButton(button, osbutton, pressed, t):
+    cur_buttons = 0
+
+    if pressed & osbutton and not pressed_prev & osbutton:
+        button_times[button] = t
+    elif pressed_prev & osbutton:
+        if button_times[button] + LONG_DELAY < t:
+            cur_buttons |= button << 1
+            button_times[button] = t
+        elif not pressed & osbutton:
+            cur_buttons |= button
+
+    return cur_buttons
+
 def checkButtons():
-    global pressed_prev, button_sel_time, button_up_time, button_down_time
+    global pressed_prev
 
     t = utime.time_ms()
     pressed = buttons.read(buttons.BOTTOM_LEFT | buttons.TOP_RIGHT | buttons.BOTTOM_RIGHT)
     cur_buttons = 0
 
-    if pressed & buttons.BOTTOM_LEFT and not pressed_prev & buttons.BOTTOM_LEFT:
-        button_sel_time = t
-    elif not pressed & buttons.BOTTOM_LEFT and pressed_prev & buttons.BOTTOM_LEFT:
-        if button_sel_time + 1000 < t:
-            cur_buttons |= BUTTON_SEL_LONG
-        else:
-            cur_buttons |= BUTTON_SEL
-
-    if pressed & buttons.TOP_RIGHT and not pressed_prev & buttons.TOP_RIGHT:
-        button_up_time = t
-    elif not pressed & buttons.TOP_RIGHT and pressed_prev & buttons.TOP_RIGHT:
-        if button_up_time + 1000 < t:
-            cur_buttons |= BUTTON_UP_LONG
-        else:
-            cur_buttons |= BUTTON_UP
-
-    if pressed & buttons.BOTTOM_RIGHT and not pressed_prev & buttons.BOTTOM_RIGHT:
-        button_down_time = t
-    elif not pressed & buttons.BOTTOM_RIGHT and pressed_prev & buttons.BOTTOM_RIGHT:
-        if button_down_time + 1000 < t:
-            cur_buttons |= BUTTON_DOWN_LONG
-        else:
-            cur_buttons |= BUTTON_DOWN
+    cur_buttons |= checkButton(BUTTON_SEL, buttons.BOTTOM_LEFT, pressed, t)
+    cur_buttons |= checkButton(BUTTON_UP, buttons.TOP_RIGHT, pressed, t)
+    cur_buttons |= checkButton(BUTTON_DOWN, buttons.BOTTOM_RIGHT, pressed, t)
 
     pressed_prev = pressed
     return cur_buttons
