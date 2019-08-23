@@ -30,8 +30,8 @@ def set_time(t):
     _utime.set_time(t)
     new_t = _utime.time()
 
-    diff = new_t - cur_t
-    _offset = -diff
+    diff = cur_t - new_t
+    _offset += diff
 
 def set_unix_time(t):
     global _offset
@@ -40,8 +40,8 @@ def set_unix_time(t):
     _utime.set_unix_time(t)
     new_t = _utime.time()
 
-    diff = new_t - cur_t
-    _offset = -diff
+    diff = cur_t - new_t
+    _offset += diff
 
 def localtime(s = None):
     if s != None:
