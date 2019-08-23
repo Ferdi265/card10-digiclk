@@ -203,9 +203,13 @@ def ctrl_chg_hrs(bs):
         MODE = DISPLAY
     if bs & BUTTON_SEL:
         MODE = CHANGE_MINUTES
-    if bs & BUTTON_UP or bs & BUTTON_UP_LONG:
+    if bs & BUTTON_UP_LONG:
+        modTime(0, 0, 0, 10, 0, 0)
+    if bs & BUTTON_DOWN_LONG:
+        modTime(0, 0, 0, -10, 0, 0)
+    if bs & BUTTON_UP:
         modTime(0, 0, 0, 1, 0, 0)
-    if bs & BUTTON_DOWN or bs & BUTTON_DOWN_LONG:
+    if bs & BUTTON_DOWN:
         modTime(0, 0, 0, -1, 0, 0)
 
 def ctrl_chg_mns(bs):
@@ -214,9 +218,13 @@ def ctrl_chg_mns(bs):
         MODE = DISPLAY
     if bs & BUTTON_SEL:
         MODE = CHANGE_SECONDS
-    if bs & BUTTON_UP or bs & BUTTON_UP_LONG:
+    if bs & BUTTON_UP_LONG:
+        modTime(0, 0, 0, 0, 10, 0)
+    if bs & BUTTON_DOWN_LONG:
+        modTime(0, 0, 0, 0, -10, 0)
+    if bs & BUTTON_UP:
         modTime(0, 0, 0, 0, 1, 0)
-    if bs & BUTTON_DOWN or bs & BUTTON_DOWN_LONG:
+    if bs & BUTTON_DOWN:
         modTime(0, 0, 0, 0, -1, 0)
 
 def ctrl_chg_sec(bs):
@@ -225,9 +233,13 @@ def ctrl_chg_sec(bs):
         MODE = DISPLAY
     if bs & BUTTON_SEL:
         MODE = CHANGE_YEAR
-    if bs & BUTTON_UP or bs & BUTTON_UP_LONG:
+    if bs & BUTTON_UP_LONG:
+        modTime(0, 0, 0, 0, 0, 10)
+    if bs & BUTTON_DOWN_LONG:
+        modTime(0, 0, 0, 0, 0, -10)
+    if bs & BUTTON_UP:
         modTime(0, 0, 0, 0, 0, 1)
-    if bs & BUTTON_DOWN or bs & BUTTON_DOWN_LONG:
+    if bs & BUTTON_DOWN:
         modTime(0, 0, 0, 0, 0, -1)
 
 def ctrl_chg_yrs(bs):
@@ -236,9 +248,13 @@ def ctrl_chg_yrs(bs):
         MODE = DISPLAY
     if bs & BUTTON_SEL:
         MODE = CHANGE_MONTH
-    if bs & BUTTON_UP or bs & BUTTON_UP_LONG:
+    if bs & BUTTON_UP_LONG:
+        modTime(100, 0, 0, 0, 0, 0)
+    if bs & BUTTON_DOWN_LONG:
+        modTime(-100, 0, 0, 0, 0, 0)
+    if bs & BUTTON_UP:
         modTime(1, 0, 0, 0, 0, 0)
-    if bs & BUTTON_DOWN or bs & BUTTON_DOWN_LONG:
+    if bs & BUTTON_DOWN:
         modTime(-1, 0, 0, 0, 0, 0)
 
 def ctrl_chg_mth(bs):
@@ -247,9 +263,13 @@ def ctrl_chg_mth(bs):
         MODE = DISPLAY
     if bs & BUTTON_SEL:
         MODE = CHANGE_DAY
-    if bs & BUTTON_UP or bs & BUTTON_UP_LONG:
+    if bs & BUTTON_UP_LONG:
+        modTime(0, 6, 0, 0, 0, 0)
+    if bs & BUTTON_DOWN_LONG:
+        modTime(0, -6, 0, 0, 0, 0)
+    if bs & BUTTON_UP:
         modTime(0, 1, 0, 0, 0, 0)
-    if bs & BUTTON_DOWN or bs & BUTTON_DOWN_LONG:
+    if bs & BUTTON_DOWN:
         modTime(0, -1, 0, 0, 0, 0)
 
 def ctrl_chg_day(bs):
@@ -258,9 +278,13 @@ def ctrl_chg_day(bs):
         MODE = DISPLAY
     if bs & BUTTON_SEL:
         MODE = CHANGE_HOURS
-    if bs & BUTTON_UP or bs & BUTTON_UP_LONG:
+    if bs & BUTTON_UP_LONG:
+        modTime(0, 0, 10, 0, 0, 0)
+    if bs & BUTTON_DOWN_LONG:
+        modTime(0, 0, -10, 0, 0, 0)
+    if bs & BUTTON_UP:
         modTime(0, 0, 1, 0, 0, 0)
-    if bs & BUTTON_DOWN or bs & BUTTON_DOWN_LONG:
+    if bs & BUTTON_DOWN:
         modTime(0, 0, -1, 0, 0, 0)
 
 NAME = None
