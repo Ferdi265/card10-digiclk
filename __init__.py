@@ -7,13 +7,9 @@ import buttons
 sys.path.append('/apps/digiclk/')
 import monotime as utime
 import nicesegments
+import config
 
 COLORS = [(0,0,0),(255,0,0),(255,255,0),(0,255,0),(0,255,255),(0,0,255),(255,255,255),(130,30,70),(0,80,0),(0,80,80)]
-
-fgcolor_setting = 1
-bgcolor_setting = 0
-fgcolor = (255, 0, 0)
-bgcolor = (0, 0, 0)
 
 DIGITS = [
     (True, True, True, True, True, True, False),
@@ -29,12 +25,12 @@ DIGITS = [
 ]
 
 def renderNum(d, num, x):
-    nicesegments.Grid7Seg(d, x, 2, DIGITS[num // 10], fgcolor)
-    nicesegments.Grid7Seg(d, x + 22, 2, DIGITS[num % 10], fgcolor)
+    nicesegments.Grid7Seg(d, x, 2, DIGITS[num // 10], conf.fgcolor)
+    nicesegments.Grid7Seg(d, x + 22, 2, DIGITS[num % 10], conf.fgcolor)
 
 def renderColon(d):
-    nicesegments.GridColon(d, 46, 2, fgcolor)
-    nicesegments.GridColon(d, 102, 2, fgcolor)
+    nicesegments.GridColon(d, 46, 2, conf.fgcolor)
+    nicesegments.GridColon(d, 102, 2, conf.fgcolor)
 
 def renderText(d, text, blankidx = None):
     bs = bytearray(text)
@@ -43,7 +39,7 @@ def renderText(d, text, blankidx = None):
         bs[blankidx:blankidx+1] = b'_'
 
     d.print(((MODES[MODE] + ' ') if MODE != DISPLAY else '') + bs.decode(), \
-        fg = fgcolor, bg = bgcolor, posx = 0, posy = 7 * 8)
+        fg = conf.fgcolor, bg = conf.bgcolor, posx = 0, posy = 7 * 8)
 
 def render(d):
     ltime = utime.localtime()
@@ -54,7 +50,7 @@ def render(d):
     mins = ltime[4]
     secs = ltime[5]
 
-    d.clear(col = bgcolor)
+    d.clear(col = conf.bgcolor)
 
     if MODE == CHANGE_YEAR:
         renderNum(d, years // 100, 2)
@@ -228,39 +224,41 @@ def ctrl_chg_day(bs):
 
 def ctrl_chg_fgcol(bs):
     global MODE
-    global fgcolor_setting
-    global fgcolor
+    global conf
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
     if bs & BUTTON_SEL:
         MODE = CHANGE_BGCOLOR
     if bs & BUTTON_UP:
-        fgcolor_setting += 1
-        if fgcolor_setting >= len(COLORS):
-            fgcolor_setting = 0
+        conf.fgcolor_setting += 1
+        if conf.fgcolor_setting >= len(COLORS):
+            conf.fgcolor_setting = 0
     if bs & BUTTON_DOWN:
-        fgcolor_setting -= 1
-        if fgcolor_setting < 0:
-            fgcolor_setting = len(COLORS) - 1
-    fgcolor = COLORS[fgcolor_setting]
+        conf.fgcolor_setting -= 1
+        if conf.fgcolor_setting < 0:
+            conf.fgcolor_setting = len(COLORS) - 1
+    if bs & BUTTON_UP or bs & BUTTON_DOWN:
+        conf.fgcolor = COLORS[conf.fgcolor_setting]
+        conf.writeConfig()
 
 def ctrl_chg_bgcol(bs):
-        global MODE
-        global bgcolor_setting
-        global bgcolor
-        if bs & BUTTON_SEL_LONG:
-            MODE = DISPLAY
-        if bs & BUTTON_SEL:
-            MODE = CHANGE_HOURS
-        if bs & BUTTON_UP:
-            bgcolor_setting += 1
-            if bgcolor_setting >= len(COLORS):
-                bgcolor_setting = 0
-        if bs & BUTTON_DOWN:
-            bgcolor_setting -= 1
-            if bgcolor_setting < 0:
-                bgcolor_setting = len(COLORS) - 1
-        bgcolor = COLORS[bgcolor_setting]
+    global MODE
+    global conf
+    if bs & BUTTON_SEL_LONG:
+        MODE = DISPLAY
+    if bs & BUTTON_SEL:
+        MODE = CHANGE_HOURS
+    if bs & BUTTON_UP:
+        conf.bgcolor_setting += 1
+        if conf.bgcolor_setting >= len(COLORS):
+            conf.bgcolor_setting = 0
+    if bs & BUTTON_DOWN:
+        conf.bgcolor_setting -= 1
+        if conf.bgcolor_setting < 0:
+            conf.bgcolor_setting = len(COLORS) - 1
+    if bs & BUTTON_UP or bs & BUTTON_DOWN:
+        conf.bgcolor = COLORS[conf.bgcolor_setting]
+        conf.writeConfig()
 
 NAME = None
 FILENAME = 'nickname.txt'
@@ -316,8 +314,10 @@ CTRL_FNS = {
 }
 
 def main():
+    global conf
     try:
         load_nickname()
+        conf = config.Config()
         with display.open() as d:
             while True:
                 bs = checkButtons()
