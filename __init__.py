@@ -6,7 +6,7 @@ import buttons
 
 sys.path.append('/apps/digiclk/')
 import monotime as utime
-import draw
+import nicesegments
 
 DIGITS = [
     (True, True, True, True, True, True, False),
@@ -22,12 +22,12 @@ DIGITS = [
 ]
 
 def renderNum(d, num, x):
-    draw.Grid7Seg(d, x, 0, 7, DIGITS[num // 10], (255, 255, 255))
-    draw.Grid7Seg(d, x + 5, 0, 7, DIGITS[num % 10], (255, 255, 255))
+    nicesegments.Grid7Seg(d, x, 2, DIGITS[num // 10], (255, 255, 255))
+    nicesegments.Grid7Seg(d, x + 22, 2, DIGITS[num % 10], (255, 255, 255))
 
 def renderColon(d):
-    draw.GridVSeg(d, 11, 2, 7, 2, (255, 255, 255))
-    draw.GridVSeg(d, 11, 4, 7, 2, (255, 255, 255))
+    nicesegments.GridColon(d, 46, 2, (255, 255, 255))
+    nicesegments.GridColon(d, 102, 2, (255, 255, 255))
 
 def renderText(d, text, blankidx = None):
     bs = bytearray(text)
@@ -35,10 +35,8 @@ def renderText(d, text, blankidx = None):
     if blankidx != None:
         bs[blankidx:blankidx+1] = b'_'
 
-    d.print(MODES[MODE] + ' ' + bs.decode(), fg = (255, 255, 255), bg = None, posx = 0, posy = 7 * 8)
-
-def renderBar(d, num):
-    d.rect(20, 78, 20 + num * 2, 80, col = (255, 255, 255))
+    d.print(((MODES[MODE] + ' ') if MODE != DISPLAY else '') + bs.decode(), \
+        fg = (255, 255, 255), bg = None, posx = 0, posy = 7 * 8)
 
 def render(d):
     ltime = utime.localtime()
@@ -52,21 +50,24 @@ def render(d):
     d.clear()
 
     if MODE == CHANGE_YEAR:
-        renderNum(d, years // 100, 1)
-        renderNum(d, years % 100, 13)
+        renderNum(d, years // 100, 2)
+        renderNum(d, years % 100, 58)
     elif MODE == CHANGE_MONTH:
-        renderNum(d, months, 13)
+        renderNum(d, months, 58)
     elif MODE == CHANGE_DAY:
-        renderNum(d, days, 13)
+        renderNum(d, days, 58)
     else:
-        renderNum(d, hours, 1)
-        renderNum(d, mins, 13)
+        renderNum(d, hours, 2)
+        renderNum(d, mins, 58)
+        renderNum(d, secs, 114)
 
     if MODE not in (CHANGE_YEAR, CHANGE_MONTH, CHANGE_DAY) and secs % 2 == 0:
         renderColon(d)
 
-    renderText(d, NAME, None)
-    renderBar(d, secs)
+    if MODE == DISPLAY and int(secs / 10) % 2 == 0:
+        renderText(d, str(years) + '-' + str(months) + '-' + str(days), None)
+    else:
+        renderText(d, NAME, None)
 
     d.update()
 
