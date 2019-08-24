@@ -8,6 +8,13 @@ sys.path.append('/apps/digiclk/')
 import monotime as utime
 import nicesegments
 
+COLORS = [(0,0,0),(255,0,0),(255,255,0),(0,255,0),(0,255,255),(0,0,255),(255,255,255),(130,30,70),(0,80,0),(0,80,80)]
+
+fgcolor_setting = 1
+bgcolor_setting = 0
+fgcolor = (255, 0, 0)
+bgcolor = (0, 0, 0)
+
 DIGITS = [
     (True, True, True, True, True, True, False),
     (False, True, True, False, False, False, False),
@@ -22,12 +29,12 @@ DIGITS = [
 ]
 
 def renderNum(d, num, x):
-    nicesegments.Grid7Seg(d, x, 2, DIGITS[num // 10], (255, 255, 255))
-    nicesegments.Grid7Seg(d, x + 22, 2, DIGITS[num % 10], (255, 255, 255))
+    nicesegments.Grid7Seg(d, x, 2, DIGITS[num // 10], fgcolor)
+    nicesegments.Grid7Seg(d, x + 22, 2, DIGITS[num % 10], fgcolor)
 
 def renderColon(d):
-    nicesegments.GridColon(d, 46, 2, (255, 255, 255))
-    nicesegments.GridColon(d, 102, 2, (255, 255, 255))
+    nicesegments.GridColon(d, 46, 2, fgcolor)
+    nicesegments.GridColon(d, 102, 2, fgcolor)
 
 def renderText(d, text, blankidx = None):
     bs = bytearray(text)
@@ -36,7 +43,7 @@ def renderText(d, text, blankidx = None):
         bs[blankidx:blankidx+1] = b'_'
 
     d.print(((MODES[MODE] + ' ') if MODE != DISPLAY else '') + bs.decode(), \
-        fg = (255, 255, 255), bg = None, posx = 0, posy = 7 * 8)
+        fg = fgcolor, bg = None, posx = 0, posy = 7 * 8)
 
 def render(d):
     ltime = utime.localtime()
@@ -47,7 +54,7 @@ def render(d):
     mins = ltime[4]
     secs = ltime[5]
 
-    d.clear()
+    d.clear(col = bgcolor)
 
     if MODE == CHANGE_YEAR:
         renderNum(d, years // 100, 2)
@@ -65,9 +72,9 @@ def render(d):
         renderColon(d)
 
     if MODE == DISPLAY and int(secs / 10) % 2 == 0:
-        renderText(d, str(years) + '-' + str(months) + '-' + str(days), None)
+        renderText(d, str(years) + '-' + str(months) + '-' + str(days), None, bg = bgcolor)
     else:
-        renderText(d, NAME, None)
+        renderText(d, NAME, None, bg = bgcolor)
 
     d.update()
 
@@ -209,7 +216,7 @@ def ctrl_chg_day(bs):
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
     if bs & BUTTON_SEL:
-        MODE = CHANGE_HOURS
+        MODE = CHANGE_FGCOLOR
     if bs & BUTTON_UP_LONG:
         modTime(0, 0, 10, 0, 0, 0)
     if bs & BUTTON_DOWN_LONG:
@@ -218,6 +225,42 @@ def ctrl_chg_day(bs):
         modTime(0, 0, 1, 0, 0, 0)
     if bs & BUTTON_DOWN:
         modTime(0, 0, -1, 0, 0, 0)
+
+def ctrl_chg_fgcol(bs):
+    global MODE
+    global fgcolor_setting
+    global fgcolor
+    if bs & BUTTON_SEL_LONG:
+        MODE = DISPLAY
+    if bs & BUTTON_SEL:
+        MODE = CHANGE_BGCOLOR
+    if bs & BUTTON_UP:
+        fgcolor_setting += 1
+        if fgcolor_setting >= len(COLORS):
+            fgcolor_setting = 0
+    if bs & BUTTON_DOWN:
+        fgcolor_setting -= 1
+        if fgcolor_setting < 0:
+            fgcolor_setting = len(COLORS) - 1
+    fgcolor = COLORS[fgcolor_setting]
+
+def ctrl_chg_bgcol(bs):
+        global MODE
+        global bgcolor_setting
+        global bgcolor
+        if bs & BUTTON_SEL_LONG:
+            MODE = DISPLAY
+        if bs & BUTTON_SEL:
+            MODE = CHANGE_HOURS
+        if bs & BUTTON_UP:
+            bgcolor_setting += 1
+            if bgcolor_setting >= len(COLORS):
+                bgcolor_setting = 0
+        if bs & BUTTON_DOWN:
+            bgcolor_setting -= 1
+            if bgcolor_setting < 0:
+                bgcolor_setting = len(COLORS) - 1
+        bgcolor = COLORS[bgcolor_setting]
 
 NAME = None
 FILENAME = 'nickname.txt'
@@ -244,6 +287,8 @@ CHANGE_SECONDS = 3
 CHANGE_YEAR = 4
 CHANGE_MONTH = 5
 CHANGE_DAY = 6
+CHANGE_FGCOLOR = 7
+CHANGE_BGCOLOR = 8
 
 MODE = DISPLAY
 MODES = {
@@ -254,6 +299,8 @@ MODES = {
     CHANGE_YEAR: 'YRS',
     CHANGE_MONTH: 'MTH',
     CHANGE_DAY: 'DAY',
+    CHANGE_FGCOLOR: 'FGCOL',
+    CHANGE_BGCOLOR: 'BGCOL'
 }
 
 CTRL_FNS = {
@@ -264,6 +311,8 @@ CTRL_FNS = {
     CHANGE_YEAR: ctrl_chg_yrs,
     CHANGE_MONTH: ctrl_chg_mth,
     CHANGE_DAY: ctrl_chg_day,
+    CHANGE_FGCOLOR: ctrl_chg_fgcol,
+    CHANGE_BGCOLOR: ctrl_chg_bgcol,
 }
 
 def main():
