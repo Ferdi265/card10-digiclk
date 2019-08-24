@@ -43,7 +43,7 @@ def renderText(d, text, blankidx = None):
         bs[blankidx:blankidx+1] = b'_'
 
     d.print(((MODES[MODE] + ' ') if MODE != DISPLAY else '') + bs.decode(), \
-        fg = fgcolor, bg = None, posx = 0, posy = 7 * 8)
+        fg = fgcolor, bg = bgcolor, posx = 0, posy = 7 * 8)
 
 def render(d):
     ltime = utime.localtime()
@@ -72,9 +72,9 @@ def render(d):
         renderColon(d)
 
     if MODE == DISPLAY and int(secs / 10) % 2 == 0:
-        renderText(d, str(years) + '-' + str(months) + '-' + str(days), None, bg = bgcolor)
+        renderText(d, str(years) + '-' + str(months) + '-' + str(days), None)
     else:
-        renderText(d, NAME, None, bg = bgcolor)
+        renderText(d, NAME, None)
 
     d.update()
 
