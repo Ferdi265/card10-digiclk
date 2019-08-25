@@ -71,6 +71,7 @@ def render(d):
     d.update()
 
 LONG_DELAY = 400
+BUTTON_UPDATE_TIME = 100
 BUTTON_SEL = 1 << 0
 BUTTON_SEL_LONG = 1 << 1
 BUTTON_UP = 1 << 2
@@ -124,99 +125,120 @@ def modTime(yrs, mth, day, hrs, mns, sec):
     utime.set_time(new)
 
 def ctrl_display(bs):
-    global MODE
+    global MODE, updated
+    updated = True
     if bs & BUTTON_SEL_LONG:
         MODE = CHANGE_HOURS
+    else:
+        updated = False
 
 def ctrl_chg_hrs(bs):
-    global MODE
+    global MODE, updated
+    updated = True
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
-    if bs & BUTTON_SEL:
+    elif bs & BUTTON_SEL:
         MODE = CHANGE_MINUTES
-    if bs & BUTTON_UP_LONG:
+    elif bs & BUTTON_UP_LONG:
         modTime(0, 0, 0, 10, 0, 0)
-    if bs & BUTTON_DOWN_LONG:
+    elif bs & BUTTON_DOWN_LONG:
         modTime(0, 0, 0, -10, 0, 0)
-    if bs & BUTTON_UP:
+    elif bs & BUTTON_UP:
         modTime(0, 0, 0, 1, 0, 0)
-    if bs & BUTTON_DOWN:
+    elif bs & BUTTON_DOWN:
         modTime(0, 0, 0, -1, 0, 0)
+    else:
+        updated = False
 
 def ctrl_chg_mns(bs):
-    global MODE
+    global MODE, updated
+    updated = True
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
-    if bs & BUTTON_SEL:
+    elif bs & BUTTON_SEL:
         MODE = CHANGE_SECONDS
-    if bs & BUTTON_UP_LONG:
+    elif bs & BUTTON_UP_LONG:
         modTime(0, 0, 0, 0, 10, 0)
-    if bs & BUTTON_DOWN_LONG:
+    elif bs & BUTTON_DOWN_LONG:
         modTime(0, 0, 0, 0, -10, 0)
-    if bs & BUTTON_UP:
+    elif bs & BUTTON_UP:
         modTime(0, 0, 0, 0, 1, 0)
-    if bs & BUTTON_DOWN:
+    elif bs & BUTTON_DOWN:
         modTime(0, 0, 0, 0, -1, 0)
+    else:
+        updated = False
 
 def ctrl_chg_sec(bs):
-    global MODE
+    global MODE, updated
+    updated = True
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
-    if bs & BUTTON_SEL:
+    elif bs & BUTTON_SEL:
         MODE = CHANGE_YEAR
-    if bs & BUTTON_UP_LONG:
+    elif bs & BUTTON_UP_LONG:
         modTime(0, 0, 0, 0, 0, 10)
-    if bs & BUTTON_DOWN_LONG:
+    elif bs & BUTTON_DOWN_LONG:
         modTime(0, 0, 0, 0, 0, -10)
-    if bs & BUTTON_UP:
+    elif bs & BUTTON_UP:
         modTime(0, 0, 0, 0, 0, 1)
-    if bs & BUTTON_DOWN:
+    elif bs & BUTTON_DOWN:
         modTime(0, 0, 0, 0, 0, -1)
+    else:
+        updated = False
 
 def ctrl_chg_yrs(bs):
-    global MODE
+    global MODE, updated
+    updated = True
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
-    if bs & BUTTON_SEL:
+    elif bs & BUTTON_SEL:
         MODE = CHANGE_MONTH
-    if bs & BUTTON_UP_LONG:
+    elif bs & BUTTON_UP_LONG:
         modTime(10, 0, 0, 0, 0, 0)
-    if bs & BUTTON_DOWN_LONG:
+    elif bs & BUTTON_DOWN_LONG:
         modTime(-10, 0, 0, 0, 0, 0)
-    if bs & BUTTON_UP:
+    elif bs & BUTTON_UP:
         modTime(1, 0, 0, 0, 0, 0)
-    if bs & BUTTON_DOWN:
+    elif bs & BUTTON_DOWN:
         modTime(-1, 0, 0, 0, 0, 0)
+    else:
+        updated = False
 
 def ctrl_chg_mth(bs):
-    global MODE
+    global MODE, updated
+    updated = True
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
-    if bs & BUTTON_SEL:
+    elif bs & BUTTON_SEL:
         MODE = CHANGE_DAY
-    if bs & BUTTON_UP_LONG:
+    elif bs & BUTTON_UP_LONG:
         modTime(0, 6, 0, 0, 0, 0)
-    if bs & BUTTON_DOWN_LONG:
+    elif bs & BUTTON_DOWN_LONG:
         modTime(0, -6, 0, 0, 0, 0)
-    if bs & BUTTON_UP:
+    elif bs & BUTTON_UP:
         modTime(0, 1, 0, 0, 0, 0)
-    if bs & BUTTON_DOWN:
+    elif bs & BUTTON_DOWN:
         modTime(0, -1, 0, 0, 0, 0)
+    else:
+        updated = False
 
 def ctrl_chg_day(bs):
-    global MODE
+    global MODE, updated
+    updated = True
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
-    if bs & BUTTON_SEL:
+    elif bs & BUTTON_SEL:
         MODE = CHANGE_HOURS
-    if bs & BUTTON_UP_LONG:
+    elif bs & BUTTON_UP_LONG:
         modTime(0, 0, 10, 0, 0, 0)
-    if bs & BUTTON_DOWN_LONG:
+    elif bs & BUTTON_DOWN_LONG:
         modTime(0, 0, -10, 0, 0, 0)
-    if bs & BUTTON_UP:
+    elif bs & BUTTON_UP:
         modTime(0, 0, 1, 0, 0, 0)
-    if bs & BUTTON_DOWN:
+    elif bs & BUTTON_DOWN:
         modTime(0, 0, -1, 0, 0, 0)
+    else:
+        updated = False
 
 NAME = None
 FILENAME = 'nickname.txt'
@@ -254,6 +276,7 @@ MODES = {
     CHANGE_MONTH: 'MTH',
     CHANGE_DAY: 'DAY',
 }
+updated = False
 
 CTRL_FNS = {
     DISPLAY: ctrl_display,
@@ -266,13 +289,25 @@ CTRL_FNS = {
 }
 
 def main():
+    global updated
     try:
         load_nickname()
         with display.open() as d:
+            last_secs, secs = 0, 0
+            last_msecs, msecs = 0, 0
             while True:
+                updated = False
+
                 bs = checkButtons()
                 CTRL_FNS[MODE](bs)
-                render(d)
+
+                last_secs, secs = secs, utime.time_monotonic()
+                if updated or secs > last_secs:
+                    render(d)
+
+                last_msecs, msecs = msecs, utime.time_monotonic_ms()
+                if msecs - last_msecs < BUTTON_UPDATE_TIME:
+                    utime.sleep_ms(BUTTON_UPDATE_TIME - (msecs - last_msecs))
     except KeyboardInterrupt:
         pass
 
