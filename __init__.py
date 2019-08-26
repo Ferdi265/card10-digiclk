@@ -199,7 +199,6 @@ def ctrl_chg_thm(bs):
             conf.themeid = len(THEMES) - 1
     if bs & BUTTON_UP or bs & BUTTON_DOWN:
         theme = THEMES[conf.themeid]
-        conf.writeConfig()
 
 def ctrl_chg_fgc(bs):
     global MODE
@@ -218,7 +217,6 @@ def ctrl_chg_fgc(bs):
             conf.fgcolor_setting = len(COLORS) - 1
     if bs & BUTTON_UP or bs & BUTTON_DOWN:
         conf.fgcolor = COLORS[conf.fgcolor_setting]
-        conf.writeConfig()
 
 def ctrl_chg_bgc(bs):
     global MODE
@@ -237,7 +235,6 @@ def ctrl_chg_bgc(bs):
             conf.bgcolor_setting = len(COLORS) - 1
     if bs & BUTTON_UP or bs & BUTTON_DOWN:
         conf.bgcolor = COLORS[conf.bgcolor_setting]
-        conf.writeConfig()
 
 NAME = None
 FILENAME = 'nickname.txt'
@@ -281,7 +278,10 @@ def main():
         with display.open() as d:
             while True:
                 bs = checkButtons()
+                saveConfig = (MODE != DISPLAY)
                 CTRL_FNS[MODE](bs)
+                if saveConfig and MODE == DISPLAY:
+                    conf.writeConfig() # store config on leaving settings
                 render(d)
     except KeyboardInterrupt:
         pass
