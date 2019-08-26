@@ -1,3 +1,5 @@
+from globals import *
+
 SEGMENTS = [[(6, 0, 19, 1), (7, 2, 18, 2)],
     [(21, 2), (20, 3, 21, 3), (19, 4, 21, 6), (18, 7, 20, 17), (17, 18, 19, 21),
     (19, 22)],
@@ -27,3 +29,34 @@ def Grid7Seg(d, x, y, segs, c):
 
 def GridColon(d, x, y, c):
     Seg(d, x, y, c, SEGMENT_COLON)
+
+def renderNum(d, num, x, c):
+    Grid7Seg(d, x, 2, DIGITS[num // 10], c)
+    Grid7Seg(d, x + 22, 2, DIGITS[num % 10], c)
+
+def renderColon(d, c):
+    GridColon(d, 46, 2, c)
+    GridColon(d, 102, 2, c)
+
+def renderTime(d, ltime, mode, c):
+    years = ltime[0]
+    months = ltime[1]
+    days = ltime[2]
+    hours = ltime[3]
+    mins = ltime[4]
+    secs = ltime[5]
+
+    if mode == CHANGE_YEAR:
+        renderNum(d, years // 100, 2, c)
+        renderNum(d, years % 100, 58, c)
+    elif mode == CHANGE_MONTH:
+        renderNum(d, months, 58, c)
+    elif mode == CHANGE_DAY:
+        renderNum(d, days, 58, c)
+    else:
+        renderNum(d, hours, 2, c)
+        renderNum(d, mins, 58, c)
+        renderNum(d, secs, 114, c)
+
+    if mode not in (CHANGE_YEAR, CHANGE_MONTH, CHANGE_DAY) and secs % 2 == 0:
+        renderColon(d, c)

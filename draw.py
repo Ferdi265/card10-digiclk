@@ -1,3 +1,5 @@
+from globals import *
+
 def _ceilDiv(a, b):
     return (a + (b - 1)) // b
 
@@ -70,3 +72,38 @@ def Grid7Seg(d, x, y, w, segs, c):
         GridVSeg(d, x, y, w, 4, c)
     if segs[6]:
         GridHSeg(d, x, y + 3, w, 4, c)
+
+def renderNum(d, num, x, c):
+    Grid7Seg(d, x, 0, 7, DIGITS[num // 10], c)
+    Grid7Seg(d, x + 5, 0, 7, DIGITS[num % 10], c)
+
+def renderColon(d, c):
+    GridVSeg(d, 11, 2, 7, 2, c)
+    GridVSeg(d, 11, 4, 7, 2, c)
+
+def renderBar(d, num, c):
+    d.rect(20, 78, 20 + num * 2, 80, col = c)
+
+def renderTime(d, ltime, mode, c):
+    years = ltime[0]
+    months = ltime[1]
+    days = ltime[2]
+    hours = ltime[3]
+    mins = ltime[4]
+    secs = ltime[5]
+
+    if mode == CHANGE_YEAR:
+        renderNum(d, years // 100, 1, c)
+        renderNum(d, years % 100, 13, c)
+    elif mode == CHANGE_MONTH:
+        renderNum(d, months, 13, c)
+    elif mode == CHANGE_DAY:
+        renderNum(d, days, 13, c)
+    else:
+        renderNum(d, hours, 1, c)
+        renderNum(d, mins, 13, c)
+
+    if mode not in (CHANGE_YEAR, CHANGE_MONTH, CHANGE_DAY) and secs % 2 == 0:
+        renderColon(d, c)
+
+    renderBar(d, secs, c)
