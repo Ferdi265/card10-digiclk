@@ -9,6 +9,7 @@ import monotime as utime
 import draw
 import nicesegments
 import config
+import battery
 from globals import *
 
 THEMES = [draw, nicesegments]
@@ -37,6 +38,8 @@ def render(d):
         renderText(d, str(years) + '-' + str(months) + '-' + str(days), None)
     else:
         renderText(d, NAME, None)
+
+    battery.render_battery(d)
 
     d.update()
 
