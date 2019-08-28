@@ -34,7 +34,7 @@ def render(d):
 
     theme.renderTime(d, ltime, MODE, conf.fgcolor)
 
-    if MODE == DISPLAY and int(secs / 10) % 2 == 0:
+    if MODE == DISPLAY and secs // 10 % 2 == 0:
         renderText(d, str(years) + '-' + str(months) + '-' + str(days), None)
     else:
         renderText(d, NAME, None)
