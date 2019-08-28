@@ -22,7 +22,7 @@ def get_bat_color():
             return battery_color_ok
         return battery_color_bad
     except AttributeError:
-        return False
+        return None
 
 
 def render_battery(disp):
