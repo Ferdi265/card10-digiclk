@@ -1,11 +1,11 @@
 import os
 import power
 
-battery_color_good = [  0,230,0]
-battery_color_ok   = [255,215,0]
-battery_color_bad  = [255,  0,0]
+battery_color_good = (0, 230, 0)
+battery_color_ok   = (255, 215, 0)
+battery_color_bad  = (255, 0, 0)
 
-BATTERY_FLASH = [None,None,None,[3],[2,3],[1,2],[2,3],[1,2],[1],None,None,None,None]
+BATTERY_FLASH = [None, None, None, [3], [2, 3], [1, 2], [2, 3], [1, 2], [1], None, None, None, None]
 
 def get_bat_color():
     """
