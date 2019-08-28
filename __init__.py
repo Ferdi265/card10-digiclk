@@ -208,7 +208,6 @@ def ctrl_chg_day(bs):
 def ctrl_chg_thm(bs):
     global MODE, updated
     updated = True
-    global conf
     global theme
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
@@ -230,7 +229,6 @@ def ctrl_chg_thm(bs):
 def ctrl_chg_fgc(bs):
     global MODE, updated
     updated = True
-    global conf
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
     elif bs & BUTTON_SEL:
@@ -251,7 +249,6 @@ def ctrl_chg_fgc(bs):
 def ctrl_chg_bgc(bs):
     global MODE, updated
     updated = True
-    global conf
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
     elif bs & BUTTON_SEL:
