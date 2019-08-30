@@ -58,11 +58,13 @@ def render(d):
         renderNum(d, months, 13)
     elif MODE == CHANGE_DAY:
         renderNum(d, days, 13)
+    elif MODE == CHANGE_BACKLIGHT:
+        renderNum(d, BACKLIGHT, 13)
     else:
         renderNum(d, hours, 1)
         renderNum(d, mins, 13)
 
-    if MODE not in (CHANGE_YEAR, CHANGE_MONTH, CHANGE_DAY) and secs % 2 == 0:
+    if MODE not in (CHANGE_YEAR, CHANGE_MONTH, CHANGE_DAY, CHANGE_BACKLIGHT) and secs % 2 == 0:
         renderColon(d)
 
     renderText(d, NAME, None)
@@ -124,11 +126,40 @@ def modTime(yrs, mth, day, hrs, mns, sec):
     new = utime.mktime((ltime[0] + yrs, ltime[1] + mth, ltime[2] + day, ltime[3] + hrs, ltime[4] + mns, ltime[5] + sec, None, None))
     utime.set_time(new)
 
+def modBacklight(backlight):
+    global BACKLIGHT
+    if backlight >= 0 and backlight < 100:
+        BACKLIGHT = backlight
+    display.sys_display.backlight(BACKLIGHT)
+
+FLASHLIGHT = False
 def ctrl_display(bs):
+    global MODE, FLASHLIGHT, updated
+    updated = True
+    if bs & BUTTON_SEL_LONG:
+        MODE = CHANGE_BACKLIGHT
+    elif bs & BUTTON_UP or bs & BUTTON_UP_LONG:
+        FLASHLIGHT = not FLASHLIGHT
+        leds.set_flashlight(FLASHLIGHT)
+    else:
+        updated = False
+
+BACKLIGHT = 50
+def ctrl_chg_blight(bs):
     global MODE, updated
     updated = True
     if bs & BUTTON_SEL_LONG:
+        MODE = DISPLAY
+    elif bs & BUTTON_SEL:
         MODE = CHANGE_HOURS
+    elif bs & BUTTON_UP:
+        modBacklight(BACKLIGHT + 1)
+    elif bs & BUTTON_UP_LONG:
+        modBacklight(BACKLIGHT + 10)
+    elif bs & BUTTON_DOWN :
+        modBacklight(BACKLIGHT - 1)
+    elif bs & BUTTON_DOWN_LONG:
+        modBacklight(BACKLIGHT - 10)
     else:
         updated = False
 
@@ -265,10 +296,12 @@ CHANGE_SECONDS = 3
 CHANGE_YEAR = 4
 CHANGE_MONTH = 5
 CHANGE_DAY = 6
+CHANGE_BACKLIGHT = 7
 
 MODE = DISPLAY
 MODES = {
     DISPLAY: '---',
+    CHANGE_BACKLIGHT: 'BLI',
     CHANGE_HOURS: 'HRS',
     CHANGE_MINUTES: 'MNS',
     CHANGE_SECONDS: 'SEC',
@@ -280,6 +313,7 @@ updated = False
 
 CTRL_FNS = {
     DISPLAY: ctrl_display,
+    CHANGE_BACKLIGHT: ctrl_chg_blight,
     CHANGE_HOURS: ctrl_chg_hrs,
     CHANGE_MINUTES: ctrl_chg_mns,
     CHANGE_SECONDS: ctrl_chg_sec,
