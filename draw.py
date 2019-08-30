@@ -24,7 +24,7 @@ def Seg(d, x, y, w, h, c, swapAxes = False):
     py1, py2 = y + tip_h, y + tip_h + body_h
     if swapAxes:
         px1, px2, py1, py2 = py1, py2, px1, px2
-    d.rect(px1, py1, px2, py2, col = c)
+    d.rect(px1, py1, px2 - 1, py2 - 1, col = c)
 
     Tip(d, x, y + tip_h + body_h, w, c, invert = False, swapAxes = swapAxes)
 
