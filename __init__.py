@@ -39,7 +39,7 @@ def render(d):
     theme.renderTime(d, ltime, MODE, conf.fgcolor)
 
     if SUBMODE == DATE and MODE == DISPLAY:
-        renderText(d, str(years) + '-' + str(months) + '-' + str(days), None)
+        renderText(d, '{}-{:02}-{:02}'.format(years, months, days), None)
     else:
         renderText(d, NAME, None)
 
