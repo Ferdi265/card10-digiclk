@@ -7,27 +7,12 @@ import buttons
 sys.path.append('/apps/digiclk/')
 import monotime as utime
 import draw
+import nicesegments
+import config
+import battery
+from globals import *
 
-DIGITS = [
-    (True, True, True, True, True, True, False),
-    (False, True, True, False, False, False, False),
-    (True, True, False, True, True, False, True),
-    (True, True, True, True, False, False, True),
-    (False, True, True, False, False, True, True),
-    (True, False, True, True, False, True, True),
-    (True, False, True, True, True, True, True),
-    (True, True, True, False, False, False, False),
-    (True, True, True, True, True, True, True),
-    (True, True, True, True, False, True, True)
-]
-
-def renderNum(d, num, x):
-    draw.Grid7Seg(d, x, 0, 7, DIGITS[num // 10], (255, 255, 255))
-    draw.Grid7Seg(d, x + 5, 0, 7, DIGITS[num % 10], (255, 255, 255))
-
-def renderColon(d):
-    draw.GridVSeg(d, 11, 2, 7, 2, (255, 255, 255))
-    draw.GridVSeg(d, 11, 4, 7, 2, (255, 255, 255))
+THEMES = [draw, nicesegments]
 
 def renderText(d, text, blankidx = None):
     bs = bytearray(text)
@@ -35,49 +20,33 @@ def renderText(d, text, blankidx = None):
     if blankidx != None:
         bs[blankidx:blankidx+1] = b'_'
 
-    d.print(MODES[MODE] + ' ' + bs.decode(), fg = (255, 255, 255), bg = None, posx = 0, posy = 7 * 8)
+    if MODE == DISPLAY:
+        t = bs.decode()[:10]
+    else:
+        t = MODES[MODE] + ' ' + bs.decode()[:6]
 
-def renderBar(d, num):
-    d.rect(20, 78, 20 + num * 2, 80, col = (255, 255, 255))
+    d.print(t, fg = conf.fgcolor, bg = conf.bgcolor, posx = 0, posy = 7 * 8)
 
 def render(d):
     ltime = utime.localtime()
     years = ltime[0]
     months = ltime[1]
     days = ltime[2]
-    hours = ltime[3]
-    mins = ltime[4]
     secs = ltime[5]
 
-    d.clear()
+    d.clear(col = conf.bgcolor)
 
-    if MODE == CHANGE_YEAR:
-        renderNum(d, years // 100, 1)
-        renderNum(d, years % 100, 13)
-    elif MODE == CHANGE_MONTH:
-        renderNum(d, months, 13)
-    elif MODE == CHANGE_DAY:
-        renderNum(d, days, 13)
+    theme.renderTime(d, ltime, MODE, conf.fgcolor)
+
+    if SUBMODE == DATE and MODE == DISPLAY:
+        renderText(d, '{}-{:02}-{:02}'.format(years, months, days), None)
     else:
-        renderNum(d, hours, 1)
-        renderNum(d, mins, 13)
+        renderText(d, NAME, None)
 
-    if MODE not in (CHANGE_YEAR, CHANGE_MONTH, CHANGE_DAY) and secs % 2 == 0:
-        renderColon(d)
-
-    renderText(d, NAME, None)
-    renderBar(d, secs)
+    battery.render_battery(d)
 
     d.update()
 
-LONG_DELAY = 400
-BUTTON_UPDATE_TIME = 100
-BUTTON_SEL = 1 << 0
-BUTTON_SEL_LONG = 1 << 1
-BUTTON_UP = 1 << 2
-BUTTON_UP_LONG = 1 << 3
-BUTTON_DOWN = 1 << 4
-BUTTON_DOWN_LONG = 1 << 5
 pressed_prev = 0
 button_long_prev = {
     BUTTON_SEL: False,
@@ -125,10 +94,16 @@ def modTime(yrs, mth, day, hrs, mns, sec):
     utime.set_time(new)
 
 def ctrl_display(bs):
-    global MODE, updated
+    global MODE, SUBMODE, updated
     updated = True
     if bs & BUTTON_SEL_LONG:
         MODE = CHANGE_HOURS
+    elif bs & BUTTON_UP or bs & BUTTON_DOWN:
+        # this needs to be more specific when having more submodes
+        if SUBMODE == NICK:
+            SUBMODE = DATE
+        else:
+            SUBMODE = NICK
     else:
         updated = False
 
@@ -228,7 +203,7 @@ def ctrl_chg_day(bs):
     if bs & BUTTON_SEL_LONG:
         MODE = DISPLAY
     elif bs & BUTTON_SEL:
-        MODE = CHANGE_HOURS
+        MODE = CHANGE_THEME
     elif bs & BUTTON_UP_LONG:
         modTime(0, 0, 10, 0, 0, 0)
     elif bs & BUTTON_DOWN_LONG:
@@ -240,42 +215,80 @@ def ctrl_chg_day(bs):
     else:
         updated = False
 
+def ctrl_chg_thm(bs):
+    global MODE, updated
+    updated = True
+    global theme
+    if bs & BUTTON_SEL_LONG:
+        MODE = DISPLAY
+    elif bs & BUTTON_SEL:
+        MODE = CHANGE_FGCOLOR
+    elif bs & BUTTON_UP:
+        conf.themeid += 1
+        if conf.themeid >= len(THEMES):
+            conf.themeid = 0
+    elif bs & BUTTON_DOWN:
+        conf.themeid -= 1
+        if conf.themeid < 0:
+            conf.themeid = len(THEMES) - 1
+    else:
+        updated = False
+    if bs & BUTTON_UP or bs & BUTTON_DOWN:
+        theme = THEMES[conf.themeid]
+
+def ctrl_chg_fgc(bs):
+    global MODE, updated
+    updated = True
+    if bs & BUTTON_SEL_LONG:
+        MODE = DISPLAY
+    elif bs & BUTTON_SEL:
+        MODE = CHANGE_BGCOLOR
+    elif bs & BUTTON_UP:
+        conf.fgcolor_setting += 1
+        if conf.fgcolor_setting >= len(COLORS):
+            conf.fgcolor_setting = 0
+    elif bs & BUTTON_DOWN:
+        conf.fgcolor_setting -= 1
+        if conf.fgcolor_setting < 0:
+            conf.fgcolor_setting = len(COLORS) - 1
+    else:
+        updated = False
+    if bs & BUTTON_UP or bs & BUTTON_DOWN:
+        conf.fgcolor = COLORS[conf.fgcolor_setting]
+
+def ctrl_chg_bgc(bs):
+    global MODE, updated
+    updated = True
+    if bs & BUTTON_SEL_LONG:
+        MODE = DISPLAY
+    elif bs & BUTTON_SEL:
+        MODE = CHANGE_HOURS
+    elif bs & BUTTON_UP:
+        conf.bgcolor_setting += 1
+        if conf.bgcolor_setting >= len(COLORS):
+            conf.bgcolor_setting = 0
+    elif bs & BUTTON_DOWN:
+        conf.bgcolor_setting -= 1
+        if conf.bgcolor_setting < 0:
+            conf.bgcolor_setting = len(COLORS) - 1
+    else:
+        updated = False
+    if bs & BUTTON_UP or bs & BUTTON_DOWN:
+        conf.bgcolor = COLORS[conf.bgcolor_setting]
+
 NAME = None
 FILENAME = 'nickname.txt'
 def load_nickname():
     global NAME
     if FILENAME in os.listdir('.'):
         with open("nickname.txt", "rb") as f:
-            name = f.read().strip()
+            NAME = f.read().strip()
     else:
-        name = b'no nick'
-
-    if len(name) > 7:
-        name = name[0:7]
-    else:
-        name = b' ' * (7 - len(name)) + name
-
-    NAME = name
-
-# MODE values
-DISPLAY = 0
-CHANGE_HOURS = 1
-CHANGE_MINUTES = 2
-CHANGE_SECONDS = 3
-CHANGE_YEAR = 4
-CHANGE_MONTH = 5
-CHANGE_DAY = 6
+        NAME = b''
 
 MODE = DISPLAY
-MODES = {
-    DISPLAY: '---',
-    CHANGE_HOURS: 'HRS',
-    CHANGE_MINUTES: 'MNS',
-    CHANGE_SECONDS: 'SEC',
-    CHANGE_YEAR: 'YRS',
-    CHANGE_MONTH: 'MTH',
-    CHANGE_DAY: 'DAY',
-}
+SUBMODE = NICK
+
 updated = False
 
 CTRL_FNS = {
@@ -286,12 +299,19 @@ CTRL_FNS = {
     CHANGE_YEAR: ctrl_chg_yrs,
     CHANGE_MONTH: ctrl_chg_mth,
     CHANGE_DAY: ctrl_chg_day,
+    CHANGE_THEME: ctrl_chg_thm,
+    CHANGE_FGCOLOR: ctrl_chg_fgc,
+    CHANGE_BGCOLOR: ctrl_chg_bgc,
 }
 
 def main():
+    global conf
+    global theme
     global updated
     try:
         load_nickname()
+        conf = config.Config()
+        theme = THEMES[conf.themeid]
         with display.open() as d:
             last_secs, secs = 0, 0
             last_msecs, msecs = 0, 0
@@ -299,7 +319,10 @@ def main():
                 updated = False
 
                 bs = checkButtons()
+                saveConfig = (MODE != DISPLAY)
                 CTRL_FNS[MODE](bs)
+                if saveConfig and MODE == DISPLAY:
+                    conf.writeConfig() # store config on leaving settings
 
                 last_secs, secs = secs, utime.time_monotonic()
                 if updated or secs > last_secs:
