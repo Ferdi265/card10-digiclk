@@ -20,7 +20,7 @@ def Seg(d, x, y, c, data):
             d.pixel(x + coord_tuple[0], y + coord_tuple[1], col = c)
         else:
             d.rect(x + coord_tuple[0], y + coord_tuple[1], \
-            x + coord_tuple[2] + 1, y + coord_tuple[3] + 1, col = c)
+            x + coord_tuple[2], y + coord_tuple[3], col = c)
 
 def Grid7Seg(d, x, y, segs, c):
     for i in range(7):

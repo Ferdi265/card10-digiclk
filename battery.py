@@ -35,10 +35,10 @@ def render_battery(disp):
     if not c:
         return
     disp.line(141, 62, 155, 62, col = c)
-    disp.line(155, 62, 155, 69, col = c) # line bug
+    disp.line(155, 62, 155, 68, col = c)
     disp.line(155, 68, 141, 68, col = c)
     disp.line(141, 68, 141, 62, col = c)
-    disp.rect(156, 64, 158, 67, filled = True, col = c)
+    disp.rect(156, 64, 157, 66, filled = True, col = c)
     try:
         charging = (power.read_chargein_voltage() > 1)
     except AttributeError:
@@ -47,7 +47,7 @@ def render_battery(disp):
         v = os.read_battery()
         fillWidth = round(max(min(v - 3.6, 0.44), 0) * 32.5)
         if not charging:
-            disp.rect(142, 63, 142 + fillWidth, 68, filled = True, col = c)
+            disp.rect(142, 63, 141 + fillWidth, 67, filled = True, col = c)
         else:
             for i in range(13):
                 if not BATTERY_FLASH[i]:
