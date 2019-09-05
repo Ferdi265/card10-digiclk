@@ -52,14 +52,14 @@ def render_battery(disp):
             for i in range(13):
                 if not BATTERY_FLASH[i]:
                     if fillWidth > i:
-                        disp.line(142 + i, 63, 142 + i, 68, col = c)
+                        disp.line(142 + i, 63, 142 + i, 67, col = c)
                 else:
                     if fillWidth > i:
-                        y = min(BATTERY_FLASH[i]) - 1
-                        if y > 0:
+                        y = min(BATTERY_FLASH[i]) - 2
+                        if y >= 0:
                             disp.line(142 + i, 63, 142 + i, 63 + y, col = c)
                         y = max(BATTERY_FLASH[i]) + 2
-                        if y <= 68:
+                        if y <= 4:
                             disp.line(142 + i, 63 + y, 142 + i, 68, col = c)
                     for y in BATTERY_FLASH[i]:
                         disp.pixel(142 + i, 63 + y, col = c)
