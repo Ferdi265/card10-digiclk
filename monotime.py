@@ -1,12 +1,12 @@
 import utime as _utime
 
-_offset = 0
+_offset_ms = 0
 
 def time_monotonic():
-    return _utime.time() + _offset
+    return _utime.time() + _offset_ms // 1000
 
 def time_monotonic_ms():
-    return _utime.time_ms() + _offset * 1000
+    return _utime.time_ms() + _offset_ms
 
 def sleep(s):
     return _utime.sleep(s)
@@ -24,24 +24,24 @@ def time_ms():
     return _utime.time_ms()
 
 def set_time(t):
-    global _offset
+    global _offset_ms
 
-    cur_t = _utime.time()
+    cur_t = _utime.time_ms()
     _utime.set_time(t)
-    new_t = _utime.time()
+    new_t = _utime.time_ms()
 
     diff = cur_t - new_t
-    _offset += diff
+    _offset_ms += diff
 
 def set_unix_time(t):
-    global _offset
+    global _offset_ms
 
-    cur_t = _utime.time()
+    cur_t = _utime.time_ms()
     _utime.set_unix_time(t)
-    new_t = _utime.time()
+    new_t = _utime.time_ms()
 
     diff = cur_t - new_t
-    _offset += diff
+    _offset_ms += diff
 
 def localtime(s = None):
     if s != None:
