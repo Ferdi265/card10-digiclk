@@ -38,7 +38,7 @@ def render(d):
 
     theme.renderTime(d, ltime, MODE, conf.fgcolor)
 
-    if MODE == DISPLAY and secs // 10 % 2 == 0:
+    if SUBMODE == DATE and MODE == DISPLAY:
         renderText(d, str(years) + '-' + str(months) + '-' + str(days), None)
     else:
         renderText(d, NAME, None)
@@ -94,10 +94,16 @@ def modTime(yrs, mth, day, hrs, mns, sec):
     utime.set_time(new)
 
 def ctrl_display(bs):
-    global MODE, updated
+    global MODE, SUBMODE, updated
     updated = True
     if bs & BUTTON_SEL_LONG:
         MODE = CHANGE_HOURS
+    elif bs & BUTTON_UP or bs & BUTTON_DOWN:
+        # this needs to be more specific when having more submodes
+        if SUBMODE == NICK:
+            SUBMODE = DATE
+        else:
+            SUBMODE = NICK
     else:
         updated = False
 
