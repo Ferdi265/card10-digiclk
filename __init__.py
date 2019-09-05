@@ -20,8 +20,12 @@ def renderText(d, text, blankidx = None):
     if blankidx != None:
         bs[blankidx:blankidx+1] = b'_'
 
-    d.print(((MODES[MODE] + ' ') if MODE != DISPLAY else '') + bs.decode(), \
-        fg = conf.fgcolor, bg = conf.bgcolor, posx = 0, posy = 7 * 8)
+    if MODE == DISPLAY:
+        t = bs.decode()[:10]
+    else:
+        t = MODES[MODE] + ' ' + bs.decode()[:6]
+
+    d.print(t, fg = conf.fgcolor, bg = conf.bgcolor, posx = 0, posy = 7 * 8)
 
 def render(d):
     ltime = utime.localtime()
@@ -272,18 +276,12 @@ def load_nickname():
     global NAME
     if FILENAME in os.listdir('.'):
         with open("nickname.txt", "rb") as f:
-            name = f.read().strip()
+            NAME = f.read().strip()
     else:
-        name = b'no nick'
-
-    if len(name) > 7:
-        name = name[0:7]
-    else:
-        name = b' ' * (7 - len(name)) + name
-
-    NAME = name
+        NAME = b''
 
 MODE = DISPLAY
+SUBMODE = NICK
 
 updated = False
 
